@@ -2,6 +2,7 @@ package app
 
 import (
 	"lazynginx/pkg/commands"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -23,6 +24,7 @@ type Model struct {
 	MainScroll   int // Scroll position for main menu
 	SubScroll    int // Scroll position for submenu
 	DetailScroll int // Scroll position for details panel
+	IsAdmin      bool // Whether running with admin/root privileges
 }
 
 // Implement interface methods for commands.ModelInterface
@@ -47,6 +49,20 @@ func (m Model) GetTextInput() string          { return m.TextInput }
 func (m Model) GetMainScroll() int            { return m.MainScroll }
 func (m Model) GetSubScroll() int             { return m.SubScroll }
 func (m Model) GetDetailScroll() int          { return m.DetailScroll }
+func (m Model) GetIsAdmin() bool              { return m.IsAdmin }
+
+// getAdminWarning returns the admin warning message if not admin
+func (m Model) getAdminWarning() string {
+	if !m.IsAdmin {
+		return "\n\n" + strings.Repeat("─", 50) + "\n\n" +
+			"⚠️  WARNING: Not running with administrator privileges\n\n" +
+			"Some operations (start, stop, restart, reload) may fail.\n" +
+			"Please restart LazyNginx with elevated permissions:\n\n" +
+			"Windows: Run as Administrator\n" +
+			"Linux/macOS: Use sudo"
+	}
+	return ""
+}
 
 func NewModel() Model {
 	subMenus := make(map[int][]string)
@@ -57,6 +73,20 @@ func NewModel() Model {
 	subMenus[4] = []string{}                                                   // Configuration - auto-loads config file
 	subMenus[5] = []string{"View Error Log", "View Access Log"}                // Logs
 	subMenus[6] = []string{"Exit Application"}                                 // Quit
+
+	// Check for admin permissions
+	isAdmin := commands.IsAdmin()
+
+	// Set initial detail message with warning if needed
+	initialDetail := "Select an option from the menu"
+	if !isAdmin {
+		initialDetail += "\n\n" + strings.Repeat("─", 50) + "\n\n" +
+			"⚠️  WARNING: Not running with administrator privileges\n\n" +
+			"Some operations (start, stop, restart, reload) may fail.\n" +
+			"Please restart LazyNginx with elevated permissions:\n\n" +
+			"Windows: Run as Administrator\n" +
+			"Linux/macOS: Use sudo"
+	}
 
 	return Model{
 		MainMenu: []string{
@@ -73,13 +103,14 @@ func NewModel() Model {
 		SubCursor:    0,
 		ActivePanel:  0,
 		Status:       "",
-		DetailOutput: "Select an option from the menu",
+		DetailOutput: initialDetail,
 		WindowWidth:  120,
 		WindowHeight: 30,
 		ShowModal:    false,
 		ModalType:    "",
 		ModalCursor:  0,
 		TextInput:    "",
+		IsAdmin:      isAdmin,
 	}
 }
 

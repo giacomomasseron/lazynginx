@@ -300,12 +300,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case commands.StatusMsg:
 		m.Status = msg.Status
-		m.DetailOutput = msg.Status // Also display in details panel
-		m.DetailScroll = 0          // Reset scroll on new content
+		m.DetailOutput = msg.Status + m.getAdminWarning() // Also display in details panel with warning
+		m.DetailScroll = 0                                // Reset scroll on new content
 		return m, nil
 
 	case commands.OutputMsg:
-		m.DetailOutput = msg.Output
+		m.DetailOutput = msg.Output + m.getAdminWarning()
 		m.DetailScroll = 0 // Reset scroll on new content
 
 		// Check if we need to reload sites after add/delete operations
