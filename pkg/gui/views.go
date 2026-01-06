@@ -549,25 +549,45 @@ func ViewModal(m ModelView) string {
 		s.WriteString("\n")
 		s.WriteString(InfoStyle.Render("↑/↓: Navigate | Enter: Select | Esc: Cancel") + "\n")
 		content = s.String()
-	} else if modalType == "proxy-input" {
-		title := " Simple Reverse Proxy "
+	} else if modalType == "proxy-location-input" {
+		title := " Simple Reverse Proxy - Step 1/2 "
 
 		s := strings.Builder{}
 		s.WriteString(TitleStyle.Render(title) + "\n\n")
-		s.WriteString("Enter proxy configuration:\n")
-		s.WriteString("Format: domain.com:port -> http://backend:port\n\n")
+		s.WriteString(NormalStyle.Render("Enter nginx location path:") + "\n")
+		s.WriteString(InfoStyle.Render("Example: / or /api or /app") + "\n\n")
 		s.WriteString(SelectedStyle.Render(" "+textInput+"█ ") + "\n\n")
-		s.WriteString(InfoStyle.Render("Type config | Enter: Confirm | Esc: Cancel") + "\n")
+		s.WriteString(InfoStyle.Render("Type location | Enter: Next | Esc: Cancel") + "\n")
 		content = s.String()
-	} else if modalType == "proxy-input-lb" {
-		title := " Load Balanced Proxy "
+	} else if modalType == "proxy-location-input-lb" {
+		title := " Load Balanced Proxy - Step 1/2 "
 
 		s := strings.Builder{}
 		s.WriteString(TitleStyle.Render(title) + "\n\n")
-		s.WriteString("Enter load balanced config:\n")
-		s.WriteString("Format: domain.com:port -> backend1:port,backend2:port\n\n")
+		s.WriteString(NormalStyle.Render("Enter nginx location path:") + "\n")
+		s.WriteString(InfoStyle.Render("Example: / or /api or /app") + "\n\n")
 		s.WriteString(SelectedStyle.Render(" "+textInput+"█ ") + "\n\n")
-		s.WriteString(InfoStyle.Render("Type config | Enter: Confirm | Esc: Cancel") + "\n")
+		s.WriteString(InfoStyle.Render("Type location | Enter: Next | Esc: Cancel") + "\n")
+		content = s.String()
+	} else if modalType == "proxy-host-input" {
+		title := " Simple Reverse Proxy - Step 2/2 "
+
+		s := strings.Builder{}
+		s.WriteString(TitleStyle.Render(title) + "\n\n")
+		s.WriteString(NormalStyle.Render("Enter backend host:") + "\n")
+		s.WriteString(InfoStyle.Render("Example: http://localhost:3000 or http://192.168.1.10:8080") + "\n\n")
+		s.WriteString(SelectedStyle.Render(" "+textInput+"█ ") + "\n\n")
+		s.WriteString(InfoStyle.Render("Type host | Enter: Create | Esc: Cancel") + "\n")
+		content = s.String()
+	} else if modalType == "proxy-host-input-lb" {
+		title := " Load Balanced Proxy - Step 2/2 "
+
+		s := strings.Builder{}
+		s.WriteString(TitleStyle.Render(title) + "\n\n")
+		s.WriteString(NormalStyle.Render("Enter backend hosts (comma-separated):") + "\n")
+		s.WriteString(InfoStyle.Render("Example: localhost:3000,localhost:3001,localhost:3002") + "\n\n")
+		s.WriteString(SelectedStyle.Render(" "+textInput+"█ ") + "\n\n")
+		s.WriteString(InfoStyle.Render("Type hosts | Enter: Create | Esc: Cancel") + "\n")
 		content = s.String()
 	}
 

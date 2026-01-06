@@ -314,6 +314,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, commands.LoadSites(&m)
 		}
 
+		// Check if we need to reload reverse proxies after add operation
+		if m.MainCursor == 3 && strings.Contains(msg.Output, "Reverse proxy") && strings.Contains(msg.Output, "created successfully") {
+			// Reload reverse proxies list after successful add
+			return m, commands.LoadReverseProxies(&m)
+		}
+
 		return m, nil
 
 	case tea.WindowSizeMsg:

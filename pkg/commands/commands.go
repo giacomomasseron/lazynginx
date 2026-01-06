@@ -706,38 +706,42 @@ func AddSite(siteType string, siteName string) tea.Msg {
 
 func AddProxy(proxyType string, proxyConfig string) tea.Msg {
 	// Parse proxy configuration
-	// Expected format: domain.com:port -> backend:port
-	// For load balanced: domain.com:port -> backend1:port,backend2:port
+	// Expected format: /location -> backend:port
+	// For load balanced: /location -> backend1:port,backend2:port
 
 	parts := strings.Split(proxyConfig, "->")
 	if len(parts) != 2 {
-		return OutputMsg{Output: "Invalid proxy configuration format.\n\nExpected format:\n- Simple: domain.com:port -> http://backend:port\n- Load Balanced: domain.com:port -> backend1:port,backend2:port"}
+		return OutputMsg{Output: "Invalid proxy configuration format.\n\nExpected format:\n- Simple: /location -> http://backend:port\n- Load Balanced: /location -> backend1:port,backend2:port"}
 	}
 
-	frontend := strings.TrimSpace(parts[0])
+	location := strings.TrimSpace(parts[0])
 	backends := strings.TrimSpace(parts[1])
 
-	if frontend == "" || backends == "" {
-		return OutputMsg{Output: "Invalid proxy configuration. Frontend and backend cannot be empty."}
+	if location == "" || backends == "" {
+		return OutputMsg{Output: "Invalid proxy configuration. Location and backend cannot be empty."}
 	}
 
-	// Parse frontend (domain:port or just domain)
-	var serverName, listenPort string
-	if strings.Contains(frontend, ":") {
-		frontendParts := strings.Split(frontend, ":")
-		serverName = frontendParts[0]
-		listenPort = frontendParts[1]
-	} else {
-		serverName = frontend
-		listenPort = "80"
+	// Ensure location starts with /
+	if !strings.HasPrefix(location, "/") {
+		location = "/" + location
+	}
+
+	// Generate a safe config name from the location
+	// Replace / with - and remove any special characters
+	configName := strings.ReplaceAll(location, "/", "-")
+	if configName == "-" || configName == "" {
+		configName = "root"
+	}
+	configName = strings.Trim(configName, "-")
+	if configName == "" {
+		configName = "root"
 	}
 
 	var configContent string
-	var configName string
 
 	if proxyType == "Simple" {
 		// Simple reverse proxy
-		configName = fmt.Sprintf("proxy-%s", serverName)
+		configName = fmt.Sprintf("proxy-%s", configName)
 
 		// Ensure backend has http:// prefix
 		backend := backends
@@ -747,25 +751,26 @@ func AddProxy(proxyType string, proxyConfig string) tea.Msg {
 
 		configContent = fmt.Sprintf(`# Simple Reverse Proxy for %s
 server {
-    listen %s;
-    server_name %s;
+    listen 80;
+    server_name _;
 
-    location / {
+    location %s {
         proxy_pass %s;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-}`, serverName, listenPort, serverName, backend)
+}`, location, location, backend)
 
 	} else {
 		// Load balanced reverse proxy
-		configName = fmt.Sprintf("proxy-lb-%s", serverName)
+		configName = fmt.Sprintf("proxy-lb-%s", configName)
 
 		// Parse backend servers
 		backendList := strings.Split(backends, ",")
-		upstreamName := strings.ReplaceAll(serverName, ".", "_") + "_backend"
+		// Generate upstream name from location
+		upstreamName := strings.ReplaceAll(configName, "-", "_") + "_backend"
 
 		// Build upstream block
 		upstreamBlock := fmt.Sprintf("upstream %s {\n", upstreamName)
@@ -783,17 +788,17 @@ server {
 
 		configContent = fmt.Sprintf(`# Load Balanced Reverse Proxy for %s
 %sserver {
-    listen %s;
-    server_name %s;
+    listen 80;
+    server_name _;
 
-    location / {
+    location %s {
         proxy_pass http://%s;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-}`, serverName, upstreamBlock, listenPort, serverName, upstreamName)
+}`, location, upstreamBlock, location, upstreamName)
 	}
 
 	// Try to write to sites-available or conf.d
@@ -818,7 +823,7 @@ server {
 					os.Symlink(path, enabledPath)
 				}
 
-				return OutputMsg{Output: fmt.Sprintf("Reverse proxy '%s' created successfully!\n\nConfiguration file: %s\n\nType: %s\n\nFrontend: %s:%s\nBackend(s): %s\n\nNext steps:\n1. Test configuration: sudo nginx -t\n2. Reload nginx: sudo systemctl reload nginx\n3. Add to /etc/hosts if needed: 127.0.0.1 %s", configName, path, proxyType, serverName, listenPort, backends, serverName)}
+				return OutputMsg{Output: fmt.Sprintf("Reverse proxy '%s' created successfully!\n\nConfiguration file: %s\n\nType: %s\n\nLocation: %s\nBackend(s): %s\n\nNext steps:\n1. Test configuration: sudo nginx -t\n2. Reload nginx: sudo systemctl reload nginx\n\nNote: This creates a catch-all server block (server_name _).\nFor production, edit the config to set a specific server_name.", configName, path, proxyType, location, backends)}
 			}
 			return OutputMsg{Output: fmt.Sprintf("Failed to create reverse proxy: %s\n\nYou may need sudo/administrator privileges", err.Error())}
 		}

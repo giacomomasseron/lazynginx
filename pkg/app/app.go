@@ -21,6 +21,7 @@ type Model struct {
 	ModalType    string // "site-type", "custom-input"
 	ModalCursor  int
 	TextInput    string
+	ProxyLocation string // Stores nginx location from step 1 of proxy wizard
 	MainScroll   int // Scroll position for main menu
 	SubScroll    int // Scroll position for submenu
 	DetailScroll int // Scroll position for details panel

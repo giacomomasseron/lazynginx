@@ -19,7 +19,8 @@ func (m Model) handleModalInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Only handle navigation for selection modals, not text input modals
 		if m.ModalType == "custom-input" || m.ModalType == "laravel-input" ||
 			m.ModalType == "static-input" || m.ModalType == "vanilla-php-input" ||
-			m.ModalType == "proxy-input" || m.ModalType == "proxy-input-lb" {
+			m.ModalType == "proxy-location-input" || m.ModalType == "proxy-location-input-lb" ||
+			m.ModalType == "proxy-host-input" || m.ModalType == "proxy-host-input-lb" {
 			// For text input modals, let these keys fall through to default handler
 			if msg.String() == "k" {
 				key := msg.String()
@@ -44,7 +45,8 @@ func (m Model) handleModalInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		// Only handle navigation for selection modals, not text input modals
 		if m.ModalType == "custom-input" || m.ModalType == "laravel-input" ||
 			m.ModalType == "static-input" || m.ModalType == "vanilla-php-input" ||
-			m.ModalType == "proxy-input" || m.ModalType == "proxy-input-lb" {
+			m.ModalType == "proxy-location-input" || m.ModalType == "proxy-location-input-lb" ||
+			m.ModalType == "proxy-host-input" || m.ModalType == "proxy-host-input-lb" {
 			// For text input modals, let these keys fall through to default handler
 			if msg.String() == "j" {
 				key := msg.String()
@@ -142,29 +144,45 @@ func (m Model) handleModalInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 		} else if m.ModalType == "proxy-type" {
 			if m.ModalCursor == 0 {
-				// Simple Proxy selected - show text input modal for custom configuration
-				m.ModalType = "proxy-input"
+				// Simple Proxy selected - show step 1: location input
+				m.ModalType = "proxy-location-input"
 				m.TextInput = ""
 				return m, nil
 			} else {
-				// Load Balanced selected
-				m.ModalType = "proxy-input-lb"
+				// Load Balanced selected - show step 1: location input
+				m.ModalType = "proxy-location-input-lb"
 				m.TextInput = ""
 				return m, nil
 			}
-		} else if m.ModalType == "proxy-input" {
-			// Submit proxy configuration
-			m.ShowModal = false
-			proxyConfig := m.TextInput
+		} else if m.ModalType == "proxy-location-input" {
+			// Step 1 complete - save location and move to step 2
+			m.ProxyLocation = m.TextInput
 			m.TextInput = ""
+			m.ModalType = "proxy-host-input"
+			return m, nil
+		} else if m.ModalType == "proxy-location-input-lb" {
+			// Step 1 complete for load balanced - save location and move to step 2
+			m.ProxyLocation = m.TextInput
+			m.TextInput = ""
+			m.ModalType = "proxy-host-input-lb"
+			return m, nil
+		} else if m.ModalType == "proxy-host-input" {
+			// Step 2 complete - submit simple proxy with location and host
+			m.ShowModal = false
+			proxyHost := m.TextInput
+			proxyConfig := m.ProxyLocation + " -> " + proxyHost
+			m.TextInput = ""
+			m.ProxyLocation = ""
 			return m, func() tea.Msg {
 				return commands.AddProxy("Simple", proxyConfig)
 			}
-		} else if m.ModalType == "proxy-input-lb" {
-			// Submit load balanced proxy configuration
+		} else if m.ModalType == "proxy-host-input-lb" {
+			// Step 2 complete - submit load balanced proxy with location and hosts
 			m.ShowModal = false
-			proxyConfig := m.TextInput
+			proxyHosts := m.TextInput
+			proxyConfig := m.ProxyLocation + " -> " + proxyHosts
 			m.TextInput = ""
+			m.ProxyLocation = ""
 			return m, func() tea.Msg {
 				return commands.AddProxy("LoadBalanced", proxyConfig)
 			}
@@ -187,6 +205,14 @@ func (m Model) handleModalInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		} else if m.ModalType == "static-input" && len(m.TextInput) > 0 {
 			m.TextInput = m.TextInput[:len(m.TextInput)-1]
 		} else if m.ModalType == "vanilla-php-input" && len(m.TextInput) > 0 {
+			m.TextInput = m.TextInput[:len(m.TextInput)-1]
+		} else if m.ModalType == "proxy-location-input" && len(m.TextInput) > 0 {
+			m.TextInput = m.TextInput[:len(m.TextInput)-1]
+		} else if m.ModalType == "proxy-location-input-lb" && len(m.TextInput) > 0 {
+			m.TextInput = m.TextInput[:len(m.TextInput)-1]
+		} else if m.ModalType == "proxy-host-input" && len(m.TextInput) > 0 {
+			m.TextInput = m.TextInput[:len(m.TextInput)-1]
+		} else if m.ModalType == "proxy-host-input-lb" && len(m.TextInput) > 0 {
 			m.TextInput = m.TextInput[:len(m.TextInput)-1]
 		} else if m.ModalType == "proxy-input" && len(m.TextInput) > 0 {
 			m.TextInput = m.TextInput[:len(m.TextInput)-1]
@@ -221,7 +247,9 @@ func (m Model) handleModalInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			if len(key) == 1 {
 				m.TextInput += key
 			}
-		} else if m.ModalType == "proxy-input" || m.ModalType == "proxy-input-lb" {
+		} else if m.ModalType == "proxy-location-input" || m.ModalType == "proxy-location-input-lb" ||
+			m.ModalType == "proxy-host-input" || m.ModalType == "proxy-host-input-lb" ||
+			m.ModalType == "proxy-input" || m.ModalType == "proxy-input-lb" {
 			// Accept any printable characters for proxy config
 			key := msg.String()
 			if len(key) == 1 {
