@@ -121,9 +121,15 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		}
 	}
 
+	// Choose border color based on focus (Main Menu is panel 0)
+	borderColor := UnfocusedBorderColor
+	if activePanel == 0 {
+		borderColor = FocusedBorderColor
+	}
+
 	boxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#7D56F4")).
+		BorderForeground(borderColor).
 		Padding(0, 1).
 		Width(actualBoxWidth - 2).
 		Height(boxHeight - 2)
@@ -260,9 +266,15 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		}
 	}
 
+	// Choose border color based on focus (Sub Menu is panel 1)
+	borderColor := UnfocusedBorderColor
+	if activePanel == 1 {
+		borderColor = FocusedBorderColor
+	}
+
 	boxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#7D56F4")).
+		BorderForeground(borderColor).
 		Padding(0, 1).
 		Width(actualBoxWidth - 2).
 		Height(boxHeight - 2)
@@ -314,6 +326,7 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 
 	detailOutput := m.GetDetailOutput()
 	detailScroll := m.GetDetailScroll()
+	activePanel := m.GetActivePanel()
 
 	// Split content into lines for scrolling
 	contentLines := strings.Split(detailOutput, "\n")
@@ -401,9 +414,15 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		}
 	}
 
+	// Choose border color based on focus (Details is panel 2)
+	borderColor := UnfocusedBorderColor
+	if activePanel == 2 {
+		borderColor = FocusedBorderColor
+	}
+
 	detailBoxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("#7D56F4")).
+		BorderForeground(borderColor).
 		Padding(0, 1).
 		Width(actualBoxWidth - 2).
 		Height(boxHeight - 2)

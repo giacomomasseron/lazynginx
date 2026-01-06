@@ -5,6 +5,10 @@ import (
 )
 
 var (
+	// Border colors
+	FocusedBorderColor   = lipgloss.Color("#7D56F4") // Purple - for focused panel
+	UnfocusedBorderColor = lipgloss.Color("#4A4A4A") // Dim gray - for unfocused panels
+
 	TitleStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FAFAFA")).
 			Background(lipgloss.Color("#7D56F4")).
