@@ -69,25 +69,22 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		endLine = len(mainMenu)
 	}
 
+	// Check if scrollbar is needed
+	showScrollbar := len(mainMenu) > availableLines
+
+	// Scrollbar is OUTSIDE the box, so we need to reduce box width by 1 char
+	actualBoxWidth := boxWidth
+	if showScrollbar {
+		actualBoxWidth = boxWidth - 1
+	}
+
 	// Content width = box width - border (2) - padding (2)
-	contentWidth := boxWidth - 4
+	contentWidth := actualBoxWidth - 4
 	if contentWidth < 10 {
 		contentWidth = 10
 	}
 
-	// Check if scrollbar is needed
-	showScrollbar := len(mainMenu) > availableLines
-	scrollbarWidth := 0
-	if showScrollbar {
-		scrollbarWidth = 2 // "█ " or "░ "
-	}
-	textWidth := contentWidth - scrollbarWidth
-
-	scrollbarStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#7D56F4")).
-		Bold(true)
-
-	// Render visible items with scrollbar on the right
+	// Render visible items (no scrollbar inside content)
 	for idx, i := range make([]int, endLine-startLine) {
 		i = startLine + idx
 		choice := mainMenu[i]
@@ -103,56 +100,22 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 			line = NormalStyle.Render(cursor + choice)
 		}
 
-		// Add scrollbar on the right
-		if showScrollbar {
-			// Calculate scrollbar position
-			scrollbarHeight := availableLines
-			thumbSize := utils.Max(1, scrollbarHeight*availableLines/len(mainMenu))
-			thumbStart := scrollbarHeight * scrollPos / len(mainMenu)
-			thumbEnd := thumbStart + thumbSize
-
-			var scrollChar string
-			if idx >= thumbStart && idx < thumbEnd {
-				scrollChar = scrollbarStyle.Render("█")
-			} else {
-				scrollChar = lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render("░")
-			}
-
-			// Pad line to align scrollbar
-			lineLen := lipgloss.Width(line)
-			padding := strings.Repeat(" ", utils.Max(0, textWidth-lineLen))
-			s.WriteString(line + padding + " " + scrollChar + "\n")
-		} else {
-			s.WriteString(line + "\n")
-		}
+		s.WriteString(line + "\n")
 	}
 
 	// Fill remaining lines with empty space to ensure consistent height
 	for len := endLine - startLine; len < availableLines; len++ {
-		if showScrollbar {
-			padding := strings.Repeat(" ", textWidth)
-			scrollChar := lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render("░")
-			s.WriteString(padding + " " + scrollChar + "\n")
-		} else {
-			s.WriteString("\n")
-		}
+		s.WriteString("\n")
 	}
 
-	// Lipgloss Width/Height set the CONTENT area size, not total box size
-	// Total box = content + border (2 chars for rounded border)
-	// So for box to be exactly boxWidth wide, content should be boxWidth - 2
 	// Ensure content has exact number of lines for consistent height
 	contentStr := s.String()
 	builtLines := strings.Split(contentStr, "\n")
 
-	// Ensure we have exactly contentHeight lines (title + blank + content)
-	// If we have too many lines, truncate; if too few, pad
 	expectedLines := contentHeight
 	if len(builtLines) > expectedLines {
-		// Truncate excess lines
 		contentStr = strings.Join(builtLines[:expectedLines], "\n")
 	} else if len(builtLines) < expectedLines {
-		// Pad with empty lines
 		for i := len(builtLines); i < expectedLines; i++ {
 			contentStr += "\n"
 		}
@@ -162,10 +125,44 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#7D56F4")).
 		Padding(0, 1).
-		Width(boxWidth - 2).
+		Width(actualBoxWidth - 2).
 		Height(boxHeight - 2)
 
-	return boxStyle.Render(contentStr)
+	renderedBox := boxStyle.Render(contentStr)
+
+	// If scrollbar needed, build it separately and join horizontally
+	if showScrollbar {
+		scrollbarStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#7D56F4")).
+			Bold(true)
+
+		scrollbarBuilder := strings.Builder{}
+
+		// Calculate scrollbar thumb position
+		scrollbarHeight := boxHeight
+		thumbSize := utils.Max(1, scrollbarHeight*availableLines/len(mainMenu))
+		thumbStart := scrollbarHeight * scrollPos / len(mainMenu)
+		thumbEnd := thumbStart + thumbSize
+
+		// Build scrollbar for full box height
+		for i := 0; i < boxHeight; i++ {
+			var scrollChar string
+			// Offset by 1 for top border
+			if i >= thumbStart+1 && i < thumbEnd+1 {
+				scrollChar = scrollbarStyle.Render("█")
+			} else {
+				scrollChar = lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render("░")
+			}
+			scrollbarBuilder.WriteString(scrollChar)
+			if i < boxHeight-1 {
+				scrollbarBuilder.WriteString("\n")
+			}
+		}
+
+		return lipgloss.JoinHorizontal(lipgloss.Top, renderedBox, scrollbarBuilder.String())
+	}
+
+	return renderedBox
 }
 
 func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
@@ -211,25 +208,22 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		endLine = len(subItems)
 	}
 
+	// Check if scrollbar is needed
+	showScrollbar := len(subItems) > availableLines
+
+	// Scrollbar is OUTSIDE the box, so we need to reduce box width by 1 char
+	actualBoxWidth := boxWidth
+	if showScrollbar {
+		actualBoxWidth = boxWidth - 1
+	}
+
 	// Content width = box width - border (2) - padding (2)
-	contentWidth := boxWidth - 4
+	contentWidth := actualBoxWidth - 4
 	if contentWidth < 10 {
 		contentWidth = 10
 	}
 
-	// Check if scrollbar is needed
-	showScrollbar := len(subItems) > availableLines
-	scrollbarWidth := 0
-	if showScrollbar {
-		scrollbarWidth = 2 // "█ " or "░ "
-	}
-	textWidth := contentWidth - scrollbarWidth
-
-	scrollbarStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#7D56F4")).
-		Bold(true)
-
-	// Render visible items with scrollbar on the right
+	// Render visible items (no scrollbar inside content)
 	for idx, i := range make([]int, endLine-startLine) {
 		i = startLine + idx
 		choice := subItems[i]
@@ -245,56 +239,22 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 			line = NormalStyle.Render(cursor + choice)
 		}
 
-		// Add scrollbar on the right
-		if showScrollbar {
-			// Calculate scrollbar position
-			scrollbarHeight := availableLines
-			thumbSize := utils.Max(1, scrollbarHeight*availableLines/len(subItems))
-			thumbStart := scrollbarHeight * scrollPos / len(subItems)
-			thumbEnd := thumbStart + thumbSize
-
-			var scrollChar string
-			if idx >= thumbStart && idx < thumbEnd {
-				scrollChar = scrollbarStyle.Render("█")
-			} else {
-				scrollChar = lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render("░")
-			}
-
-			// Pad line to align scrollbar
-			lineLen := lipgloss.Width(line)
-			padding := strings.Repeat(" ", utils.Max(0, textWidth-lineLen))
-			s.WriteString(line + padding + " " + scrollChar + "\n")
-		} else {
-			s.WriteString(line + "\n")
-		}
+		s.WriteString(line + "\n")
 	}
 
 	// Fill remaining lines with empty space to ensure consistent height
 	for len := endLine - startLine; len < availableLines; len++ {
-		if showScrollbar {
-			padding := strings.Repeat(" ", textWidth)
-			scrollChar := lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render("░")
-			s.WriteString(padding + " " + scrollChar + "\n")
-		} else {
-			s.WriteString("\n")
-		}
+		s.WriteString("\n")
 	}
 
-	// Lipgloss Width/Height set the CONTENT area size, not total box size
-	// Total box = content + border (2 chars for rounded border)
-	// So for box to be exactly boxWidth wide, content should be boxWidth - 2
 	// Ensure content has exact number of lines for consistent height
 	contentStr := s.String()
 	builtLines := strings.Split(contentStr, "\n")
 
-	// Ensure we have exactly contentHeight lines (title + blank + content)
-	// If we have too many lines, truncate; if too few, pad
 	expectedLines := contentHeight
 	if len(builtLines) > expectedLines {
-		// Truncate excess lines
 		contentStr = strings.Join(builtLines[:expectedLines], "\n")
 	} else if len(builtLines) < expectedLines {
-		// Pad with empty lines
 		for i := len(builtLines); i < expectedLines; i++ {
 			contentStr += "\n"
 		}
@@ -304,10 +264,44 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#7D56F4")).
 		Padding(0, 1).
-		Width(boxWidth - 2).
+		Width(actualBoxWidth - 2).
 		Height(boxHeight - 2)
 
-	return boxStyle.Render(contentStr)
+	renderedBox := boxStyle.Render(contentStr)
+
+	// If scrollbar needed, build it separately and join horizontally
+	if showScrollbar {
+		scrollbarStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#7D56F4")).
+			Bold(true)
+
+		scrollbarBuilder := strings.Builder{}
+
+		// Calculate scrollbar thumb position
+		scrollbarHeight := boxHeight
+		thumbSize := utils.Max(1, scrollbarHeight*availableLines/len(subItems))
+		thumbStart := scrollbarHeight * scrollPos / len(subItems)
+		thumbEnd := thumbStart + thumbSize
+
+		// Build scrollbar for full box height
+		for i := 0; i < boxHeight; i++ {
+			var scrollChar string
+			// Offset by 1 for top border
+			if i >= thumbStart+1 && i < thumbEnd+1 {
+				scrollChar = scrollbarStyle.Render("█")
+			} else {
+				scrollChar = lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render("░")
+			}
+			scrollbarBuilder.WriteString(scrollChar)
+			if i < boxHeight-1 {
+				scrollbarBuilder.WriteString("\n")
+			}
+		}
+
+		return lipgloss.JoinHorizontal(lipgloss.Top, renderedBox, scrollbarBuilder.String())
+	}
+
+	return renderedBox
 }
 
 func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
@@ -331,12 +325,6 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		contentHeight = 5
 	}
 
-	// Content width = box width - border (2) - padding (2)
-	contentWidth := boxWidth - 4
-	if contentWidth < 20 {
-		contentWidth = 20
-	}
-
 	availableLines := contentHeight - 2
 	if availableLines < 1 {
 		availableLines = 1
@@ -344,19 +332,18 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 
 	// Check if vertical scrollbar is needed
 	showVScrollbar := len(contentLines) > availableLines
-	scrollbarWidth := 0
+
+	// Scrollbar is OUTSIDE the box, so we need to reduce box width by 1 char
+	actualBoxWidth := boxWidth
 	if showVScrollbar {
-		scrollbarWidth = 2 // vertical scrollbar width
+		actualBoxWidth = boxWidth - 1
 	}
 
-	textWidth := contentWidth - scrollbarWidth
-	if textWidth < 1 {
-		textWidth = 1
+	// Content width = box width - border (2) - padding (2)
+	contentWidth := actualBoxWidth - 4
+	if contentWidth < 20 {
+		contentWidth = 20
 	}
-
-	scrollbarStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#7D56F4")).
-		Bold(true)
 
 	// Calculate scroll boundaries for vertical scrolling
 	maxScroll := len(contentLines) - availableLines
@@ -380,67 +367,35 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		endLine = len(contentLines)
 	}
 
-	// Render visible content with vertical scrollbar on the right
+	// Render visible content (no scrollbar inside content)
 	for idx := 0; idx < endLine-startLine; idx++ {
 		line := contentLines[startLine+idx]
 
 		// Replace tabs with spaces for consistent rendering
 		line = strings.ReplaceAll(line, "\t", "    ")
 
-		// Truncate the line to textWidth
+		// Truncate the line to contentWidth
 		runes := []rune(line)
-		if len(runes) > textWidth-3 {
-			line = string(runes[:textWidth-3]) + "..."
+		if len(runes) > contentWidth-3 {
+			line = string(runes[:contentWidth-3]) + "..."
 		}
-		// Pad line to textWidth for consistent rendering
-		lineLen := lipgloss.Width(line)
-		padding := strings.Repeat(" ", utils.Max(0, textWidth-lineLen))
 
-		if showVScrollbar {
-			// Calculate vertical scrollbar thumb
-			scrollbarHeight := availableLines
-			thumbSize := utils.Max(1, scrollbarHeight*availableLines/len(contentLines))
-			thumbStart := scrollbarHeight * scrollPos / len(contentLines)
-			thumbEnd := thumbStart + thumbSize
-
-			var scrollChar string
-			if idx >= thumbStart && idx < thumbEnd {
-				scrollChar = scrollbarStyle.Render("█")
-			} else {
-				scrollChar = lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render("░")
-			}
-			s.WriteString(line + padding + " " + scrollChar + "\n")
-		} else {
-			s.WriteString(line + padding + "\n")
-		}
+		s.WriteString(line + "\n")
 	}
 
 	// Fill remaining lines with empty space to ensure consistent height
 	for len := endLine - startLine; len < availableLines; len++ {
-		if showVScrollbar {
-			padding := strings.Repeat(" ", textWidth)
-			scrollChar := lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render("░")
-			s.WriteString(padding + " " + scrollChar + "\n")
-		} else {
-			s.WriteString("\n")
-		}
+		s.WriteString("\n")
 	}
 
-	// Lipgloss Width/Height set the CONTENT area size, not total box size
-	// Total box = content + border (2 chars for rounded border)
-	// So for box to be exactly boxWidth wide, content should be boxWidth - 2
-	// Build content and ensure it doesn't exceed the expected number of lines
+	// Ensure content has exact number of lines for consistent height
 	contentStr := s.String()
 	builtLines := strings.Split(contentStr, "\n")
 
-	// Ensure we have exactly contentHeight lines (title + blank + content)
-	// If we have too many lines, truncate; if too few, pad
 	expectedLines := contentHeight
 	if len(builtLines) > expectedLines {
-		// Truncate excess lines
 		contentStr = strings.Join(builtLines[:expectedLines], "\n")
 	} else if len(builtLines) < expectedLines {
-		// Pad with empty lines
 		for i := len(builtLines); i < expectedLines; i++ {
 			contentStr += "\n"
 		}
@@ -450,10 +405,44 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#7D56F4")).
 		Padding(0, 1).
-		Width(boxWidth - 2).
+		Width(actualBoxWidth - 2).
 		Height(boxHeight - 2)
 
-	return detailBoxStyle.Render(contentStr)
+	renderedBox := detailBoxStyle.Render(contentStr)
+
+	// If scrollbar needed, build it separately and join horizontally
+	if showVScrollbar {
+		scrollbarStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#7D56F4")).
+			Bold(true)
+
+		scrollbarBuilder := strings.Builder{}
+
+		// Calculate scrollbar thumb position
+		scrollbarHeight := boxHeight
+		thumbSize := utils.Max(1, scrollbarHeight*availableLines/len(contentLines))
+		thumbStart := scrollbarHeight * scrollPos / len(contentLines)
+		thumbEnd := thumbStart + thumbSize
+
+		// Build scrollbar for full box height
+		for i := 0; i < boxHeight; i++ {
+			var scrollChar string
+			// Offset by 1 for top border
+			if i >= thumbStart+1 && i < thumbEnd+1 {
+				scrollChar = scrollbarStyle.Render("█")
+			} else {
+				scrollChar = lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render("░")
+			}
+			scrollbarBuilder.WriteString(scrollChar)
+			if i < boxHeight-1 {
+				scrollbarBuilder.WriteString("\n")
+			}
+		}
+
+		return lipgloss.JoinHorizontal(lipgloss.Top, renderedBox, scrollbarBuilder.String())
+	}
+
+	return renderedBox
 }
 
 func ViewFooter(m ModelView, windowWidth int) string {
