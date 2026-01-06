@@ -141,6 +141,23 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	// Lipgloss Width/Height set the CONTENT area size, not total box size
 	// Total box = content + border (2 chars for rounded border)
 	// So for box to be exactly boxWidth wide, content should be boxWidth - 2
+	// Ensure content has exact number of lines for consistent height
+	contentStr := s.String()
+	builtLines := strings.Split(contentStr, "\n")
+
+	// Ensure we have exactly contentHeight lines (title + blank + content)
+	// If we have too many lines, truncate; if too few, pad
+	expectedLines := contentHeight
+	if len(builtLines) > expectedLines {
+		// Truncate excess lines
+		contentStr = strings.Join(builtLines[:expectedLines], "\n")
+	} else if len(builtLines) < expectedLines {
+		// Pad with empty lines
+		for i := len(builtLines); i < expectedLines; i++ {
+			contentStr += "\n"
+		}
+	}
+
 	boxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#7D56F4")).
@@ -148,7 +165,7 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		Width(boxWidth - 2).
 		Height(boxHeight - 2)
 
-	return boxStyle.Render(s.String())
+	return boxStyle.Render(contentStr)
 }
 
 func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
@@ -266,6 +283,23 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	// Lipgloss Width/Height set the CONTENT area size, not total box size
 	// Total box = content + border (2 chars for rounded border)
 	// So for box to be exactly boxWidth wide, content should be boxWidth - 2
+	// Ensure content has exact number of lines for consistent height
+	contentStr := s.String()
+	builtLines := strings.Split(contentStr, "\n")
+
+	// Ensure we have exactly contentHeight lines (title + blank + content)
+	// If we have too many lines, truncate; if too few, pad
+	expectedLines := contentHeight
+	if len(builtLines) > expectedLines {
+		// Truncate excess lines
+		contentStr = strings.Join(builtLines[:expectedLines], "\n")
+	} else if len(builtLines) < expectedLines {
+		// Pad with empty lines
+		for i := len(builtLines); i < expectedLines; i++ {
+			contentStr += "\n"
+		}
+	}
+
 	boxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#7D56F4")).
@@ -273,7 +307,7 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		Width(boxWidth - 2).
 		Height(boxHeight - 2)
 
-	return boxStyle.Render(s.String())
+	return boxStyle.Render(contentStr)
 }
 
 func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
