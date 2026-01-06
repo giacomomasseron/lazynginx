@@ -5,9 +5,9 @@ import (
 )
 
 var (
-	// Border colors
-	FocusedBorderColor   = lipgloss.Color("#7D56F4") // Purple - for focused panel
-	UnfocusedBorderColor = lipgloss.Color("#4A4A4A") // Dim gray - for unfocused panels
+	// Border colors (matching lazydocker style)
+	FocusedBorderColor   = lipgloss.Color("2") // Green - for focused panel
+	UnfocusedBorderColor = lipgloss.Color("8") // Dim gray - for unfocused panels
 
 	TitleStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FAFAFA")).

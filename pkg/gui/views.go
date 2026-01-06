@@ -139,7 +139,7 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	// If scrollbar needed, build it separately and join horizontally
 	if showScrollbar {
 		scrollbarStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#7D56F4")).
+			Foreground(lipgloss.Color("2")).
 			Bold(true)
 
 		scrollbarBuilder := strings.Builder{}
@@ -157,7 +157,7 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 			if i >= thumbStart+1 && i < thumbEnd+1 {
 				scrollChar = scrollbarStyle.Render("█")
 			} else {
-				scrollChar = lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render("░")
+				scrollChar = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("░")
 			}
 			scrollbarBuilder.WriteString(scrollChar)
 			if i < boxHeight-1 {
@@ -284,7 +284,7 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	// If scrollbar needed, build it separately and join horizontally
 	if showScrollbar {
 		scrollbarStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#7D56F4")).
+			Foreground(lipgloss.Color("2")).
 			Bold(true)
 
 		scrollbarBuilder := strings.Builder{}
@@ -302,7 +302,7 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 			if i >= thumbStart+1 && i < thumbEnd+1 {
 				scrollChar = scrollbarStyle.Render("█")
 			} else {
-				scrollChar = lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render("░")
+				scrollChar = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("░")
 			}
 			scrollbarBuilder.WriteString(scrollChar)
 			if i < boxHeight-1 {
@@ -432,7 +432,7 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	// If scrollbar needed, build it separately and join horizontally
 	if showVScrollbar {
 		scrollbarStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#7D56F4")).
+			Foreground(lipgloss.Color("2")).
 			Bold(true)
 
 		scrollbarBuilder := strings.Builder{}
@@ -450,7 +450,7 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 			if i >= thumbStart+1 && i < thumbEnd+1 {
 				scrollChar = scrollbarStyle.Render("█")
 			} else {
-				scrollChar = lipgloss.NewStyle().Foreground(lipgloss.Color("#7D56F4")).Render("░")
+				scrollChar = lipgloss.NewStyle().Foreground(lipgloss.Color("2")).Render("░")
 			}
 			scrollbarBuilder.WriteString(scrollChar)
 			if i < boxHeight-1 {
