@@ -1,10 +1,10 @@
 package app
 
 import (
-	"lazynginx/boxlayout"
 	"lazynginx/pkg/gui"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/jesseduffield/lazycore/pkg/boxlayout"
 )
 
 func (m Model) View() string {
@@ -13,9 +13,11 @@ func (m Model) View() string {
 		return "Terminal too small. Please resize."
 	}
 
-	// Calculate footer height
+	// Calculate available space
+	// Reserve 1 line for footer
 	footerHeight := 1
-	contentHeight := m.WindowHeight - footerHeight
+	// Reserve an extra line to prevent the top border from being cut off
+	contentHeight := m.WindowHeight - footerHeight - 1
 
 	// Create horizontal layout with 3 boxes: weights 1, 1, 2 (25%, 25%, 50%)
 	root := &boxlayout.Box{
@@ -48,12 +50,12 @@ func (m Model) View() string {
 	if m.ShowModal {
 		modalView := gui.ViewModal(m)
 
-		// Place modal over view using lipgloss Place to center it
+		// Place modal over the base view (this fills the entire window with background)
 		return lipgloss.Place(m.WindowWidth, m.WindowHeight,
 			lipgloss.Center, lipgloss.Center,
 			modalView,
-			lipgloss.WithWhitespaceChars(" "),
-			lipgloss.WithWhitespaceForeground(lipgloss.Color("0")))
+			lipgloss.WithWhitespaceChars("█"),
+			lipgloss.WithWhitespaceForeground(lipgloss.AdaptiveColor{Light: "#D9DCCF", Dark: "#383838"}))
 	}
 
 	return view

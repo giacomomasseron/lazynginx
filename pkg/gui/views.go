@@ -1,11 +1,11 @@
 package gui
 
 import (
-	"lazynginx/boxlayout"
 	"lazynginx/pkg/utils"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/jesseduffield/lazycore/pkg/boxlayout"
 )
 
 // ModelView defines the interface needed from the model for rendering
@@ -37,11 +37,12 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	s.WriteString(TitleStyle.Render(" Main Menu ") + "\n\n")
 
 	// Calculate available height for content
-	contentHeight := boxHeight - 4 // Account for border
+	// Border takes 2 lines (top + bottom), content already includes padding
+	contentHeight := boxHeight - 2
 	if contentHeight < 5 {
 		contentHeight = 5
 	}
-	availableLines := contentHeight - 2 // Reserve space for title
+	availableLines := contentHeight - 2 // Reserve space for title and spacing
 
 	mainMenu := m.GetMainMenu()
 	mainCursor := m.GetMainCursor()
@@ -80,7 +81,7 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	if showScrollbar {
 		scrollbarWidth = 2 // "█ " or "░ "
 	}
-	textWidth := contentWidth - scrollbarWidth - 2 // -2 for padding
+	textWidth := contentWidth - scrollbarWidth
 
 	scrollbarStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#7D56F4")).
@@ -137,12 +138,15 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		}
 	}
 
+	// Lipgloss Width/Height set the CONTENT area size, not total box size
+	// Total box = content + border (2 chars for rounded border)
+	// So for box to be exactly boxWidth wide, content should be boxWidth - 2
 	boxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#7D56F4")).
 		Padding(0, 1).
-		Width(boxWidth - 4).
-		Height(contentHeight)
+		Width(boxWidth - 2).
+		Height(boxHeight - 2)
 
 	return boxStyle.Render(s.String())
 }
@@ -156,11 +160,12 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	s.WriteString(TitleStyle.Render(" Options ") + "\n\n")
 
 	// Calculate available height for content
-	contentHeight := boxHeight - 4 // Account for border
+	// Border takes 2 lines (top + bottom), content already includes padding
+	contentHeight := boxHeight - 2
 	if contentHeight < 5 {
 		contentHeight = 5
 	}
-	availableLines := contentHeight - 2 // Reserve space for title
+	availableLines := contentHeight - 2 // Reserve space for title and spacing
 
 	subMenus := m.GetSubMenus()
 	mainCursor := m.GetMainCursor()
@@ -201,7 +206,7 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	if showScrollbar {
 		scrollbarWidth = 2 // "█ " or "░ "
 	}
-	textWidth := contentWidth - scrollbarWidth - 2 // -2 for padding
+	textWidth := contentWidth - scrollbarWidth
 
 	scrollbarStyle := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#7D56F4")).
@@ -258,12 +263,15 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		}
 	}
 
+	// Lipgloss Width/Height set the CONTENT area size, not total box size
+	// Total box = content + border (2 chars for rounded border)
+	// So for box to be exactly boxWidth wide, content should be boxWidth - 2
 	boxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#7D56F4")).
 		Padding(0, 1).
-		Width(boxWidth - 4).
-		Height(contentHeight)
+		Width(boxWidth - 2).
+		Height(boxHeight - 2)
 
 	return boxStyle.Render(s.String())
 }
@@ -283,7 +291,8 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	contentLines := strings.Split(detailOutput, "\n")
 
 	// Calculate available height for content
-	contentHeight := boxHeight - 4 // Account for border
+	// Border takes 2 lines (top + bottom), content already includes padding
+	contentHeight := boxHeight - 2
 	if contentHeight < 5 {
 		contentHeight = 5
 	}
@@ -306,7 +315,7 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		scrollbarWidth = 2 // vertical scrollbar width
 	}
 
-	textWidth := contentWidth - scrollbarWidth - 2 // -2 for padding
+	textWidth := contentWidth - scrollbarWidth
 	if textWidth < 1 {
 		textWidth = 1
 	}
@@ -380,12 +389,15 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		}
 	}
 
+	// Lipgloss Width/Height set the CONTENT area size, not total box size
+	// Total box = content + border (2 chars for rounded border)
+	// So for box to be exactly boxWidth wide, content should be boxWidth - 2
 	detailBoxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#7D56F4")).
 		Padding(0, 1).
-		Width(boxWidth - 4).
-		Height(contentHeight)
+		Width(boxWidth - 2).
+		Height(boxHeight - 2)
 
 	return detailBoxStyle.Render(s.String())
 }
