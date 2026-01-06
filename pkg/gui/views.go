@@ -350,12 +350,15 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	for idx := 0; idx < endLine-startLine; idx++ {
 		line := contentLines[startLine+idx]
 
+		// Replace tabs with spaces for consistent rendering
+		line = strings.ReplaceAll(line, "\t", "    ")
+
 		// Truncate the line to textWidth
 		runes := []rune(line)
 		if len(runes) > textWidth-3 {
 			line = string(runes[:textWidth-3]) + "..."
 		}
-		// Pad line to textWidth
+		// Pad line to textWidth for consistent rendering
 		lineLen := lipgloss.Width(line)
 		padding := strings.Repeat(" ", utils.Max(0, textWidth-lineLen))
 
@@ -392,6 +395,23 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	// Lipgloss Width/Height set the CONTENT area size, not total box size
 	// Total box = content + border (2 chars for rounded border)
 	// So for box to be exactly boxWidth wide, content should be boxWidth - 2
+	// Build content and ensure it doesn't exceed the expected number of lines
+	contentStr := s.String()
+	builtLines := strings.Split(contentStr, "\n")
+
+	// Ensure we have exactly contentHeight lines (title + blank + content)
+	// If we have too many lines, truncate; if too few, pad
+	expectedLines := contentHeight
+	if len(builtLines) > expectedLines {
+		// Truncate excess lines
+		contentStr = strings.Join(builtLines[:expectedLines], "\n")
+	} else if len(builtLines) < expectedLines {
+		// Pad with empty lines
+		for i := len(builtLines); i < expectedLines; i++ {
+			contentStr += "\n"
+		}
+	}
+
 	detailBoxStyle := lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("#7D56F4")).
@@ -399,7 +419,7 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		Width(boxWidth - 2).
 		Height(boxHeight - 2)
 
-	return detailBoxStyle.Render(s.String())
+	return detailBoxStyle.Render(contentStr)
 }
 
 func ViewFooter(m ModelView, windowWidth int) string {
