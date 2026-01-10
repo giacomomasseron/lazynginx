@@ -34,10 +34,23 @@ func IsAdmin() bool {
 
 // Commands
 func CheckNginxStatus() tea.Msg {
+	// ASCII art header (centered)
+	asciiArt := `
+           _                             _            
+          | |                           (_)           
+          | | __ _ _____   _ _ __   __ _ _ _ __ __  __
+          | |/ _` + "`" + ` |_  / | | | '_ \ / _` + "`" + ` | | '_ \\ \/ /
+          | | (_| |/ /| |_| | | | | (_| | | | | |>  < 
+          |_|\__,_/___|\__, |_| |_|\__, |_|_| |_/_/\_\
+                        __/ |       __/ |              
+                       |___/       |___/               
+
+`
+
 	// Check if nginx binary exists
 	_, err := exec.LookPath("nginx")
 	if err != nil {
-		return StatusMsg{Status: "⚠️  Nginx binary not found in PATH"}
+		return StatusMsg{Status: asciiArt + "⚠️  Nginx binary not found in PATH"}
 	}
 
 	// Windows: Check if nginx process is running
@@ -46,10 +59,10 @@ func CheckNginxStatus() tea.Msg {
 	if err == nil {
 		// tasklist command succeeded, check if nginx.exe is in the output
 		if strings.Contains(strings.ToLower(string(output)), "nginx.exe") {
-			return StatusMsg{Status: "✓ Nginx is running"}
+			return StatusMsg{Status: asciiArt + "✓ Nginx is running"}
 		}
 		// On Windows, if tasklist worked but nginx.exe not found, it's not running
-		return StatusMsg{Status: "⚠️  Nginx is not running"}
+		return StatusMsg{Status: asciiArt + "⚠️  Nginx is not running"}
 	}
 
 	// Unix/Linux: Try systemctl first (most common)
@@ -58,9 +71,9 @@ func CheckNginxStatus() tea.Msg {
 	if err == nil {
 		status := strings.TrimSpace(string(output))
 		if status == "active" {
-			return StatusMsg{Status: "✓ Nginx is running (systemd)"}
+			return StatusMsg{Status: asciiArt + "✓ Nginx is running (systemd)"}
 		} else if status == "inactive" {
-			return StatusMsg{Status: "⚠️  Nginx is not running (systemd)"}
+			return StatusMsg{Status: asciiArt + "⚠️  Nginx is not running (systemd)"}
 		}
 		// If systemctl returned something else, fall through to other checks
 	}
@@ -69,7 +82,7 @@ func CheckNginxStatus() tea.Msg {
 	cmd = exec.Command("pgrep", "-x", "nginx")
 	err = cmd.Run()
 	if err == nil {
-		return StatusMsg{Status: "✓ Nginx is running"}
+		return StatusMsg{Status: asciiArt + "✓ Nginx is running"}
 	}
 
 	// Try ps command as fallback
@@ -91,15 +104,15 @@ func CheckNginxStatus() tea.Msg {
 				lowerCmd := strings.ToLower(command)
 				// Check for actual nginx processes, not lazynginx
 				if (strings.Contains(lowerCmd, "/nginx") || strings.Contains(lowerCmd, " nginx") || strings.HasPrefix(lowerCmd, "nginx")) && !strings.Contains(lowerCmd, "lazynginx") {
-					return StatusMsg{Status: "✓ Nginx is running"}
+					return StatusMsg{Status: asciiArt + "✓ Nginx is running"}
 				}
 			}
 		}
 		// ps command worked but nginx not in output
-		return StatusMsg{Status: "⚠️  Nginx is not running"}
+		return StatusMsg{Status: asciiArt + "⚠️  Nginx is not running"}
 	}
 
-	return StatusMsg{Status: "⚠️  Nginx is not running"}
+	return StatusMsg{Status: asciiArt + "⚠️  Nginx is not running"}
 }
 
 func StartNginx() tea.Msg {

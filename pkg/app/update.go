@@ -78,6 +78,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.SubCursor = newSubCursor
 						m.DetailOutput = ""
 						m.DetailScroll = 0
+						// Auto-load status when Check Status selected
+						if m.MainCursor == 0 && m.SubCursor == 0 {
+							return m, commands.CheckNginxStatus
+						}
 						// Auto-load logs when in Logs menu
 						if m.MainCursor == 5 {
 							if m.SubCursor == 0 {
@@ -162,6 +166,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.SubCursor < m.SubScroll {
 						m.SubScroll = m.SubCursor
 					}
+					// Auto-load status when Check Status selected
+					if m.MainCursor == 0 && m.SubCursor == 0 {
+						return m, commands.CheckNginxStatus
+					}
 					// Auto-load logs when in Logs menu
 					if m.MainCursor == 5 {
 						if m.SubCursor == 0 {
@@ -231,6 +239,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					availableLines := contentHeight - 3
 					if m.SubCursor >= m.SubScroll+availableLines {
 						m.SubScroll = m.SubCursor - availableLines + 1
+					}
+					// Auto-load status when Check Status selected
+					if m.MainCursor == 0 && m.SubCursor == 0 {
+						return m, commands.CheckNginxStatus
 					}
 					// Auto-load logs when in Logs menu
 					if m.MainCursor == 5 {
