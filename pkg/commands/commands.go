@@ -218,12 +218,21 @@ func StopNginx() tea.Msg {
 	}
 	nginxErr := string(output)
 
+	// Force kill nginx processes with pkill (Linux/Unix)
+	cmd = exec.Command("sudo", "pkill", "-9", "nginx")
+	output, err = cmd.CombinedOutput()
+	if err == nil {
+		return OutputMsg{Output: "Nginx stopped successfully (force killed)\n\n" + string(output)}
+	}
+	pkillErr := string(output)
+
 	// All methods failed, show detailed error
 	errorMsg := fmt.Sprintf("Failed to stop nginx. Tried the following methods:\n\n")
 	errorMsg += fmt.Sprintf("1. Windows (net stop): %s\n", windowsErr)
 	errorMsg += fmt.Sprintf("2. Systemd (sudo): %s\n", systemdErr)
 	errorMsg += fmt.Sprintf("3. Direct nginx (sudo): %s\n", sudoNginxErr)
-	errorMsg += fmt.Sprintf("4. Direct nginx (no sudo): %s\n\n", nginxErr)
+	errorMsg += fmt.Sprintf("4. Direct nginx (no sudo): %s\n", nginxErr)
+	errorMsg += fmt.Sprintf("5. Force kill (sudo pkill): %s\n\n", pkillErr)
 	errorMsg += "Note: You may need to:\n"
 	errorMsg += "- Run lazynginx with sudo: sudo ./lazynginx\n"
 	errorMsg += "- Or configure passwordless sudo for nginx commands\n"
