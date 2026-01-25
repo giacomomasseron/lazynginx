@@ -1,0 +1,35 @@
+name: Release
+
+on:
+  push:
+    # This ensures the workflow only runs when you push a version tag
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write  # Required to create the GitHub release and upload assets
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Required for GoReleaser to generate a changelog
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable' # Uses the latest stable Go version
+          cache: true          # Speeds up subsequent runs by caching dependencies
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> v2"      # Uses the latest v2 version of GoReleaser
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Automatically provided by GitHub
+
