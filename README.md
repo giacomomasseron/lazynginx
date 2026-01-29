@@ -4,6 +4,8 @@ A beautiful terminal-based Nginx manager built with Go and [Bubble Tea](https://
 
 [![GitHub Releases](https://img.shields.io/github/downloads/giacomomasseron/lazynginx/total)](https://github.com/giacomomasseron/lazynginx/releases) [![Go Report Card](https://goreportcard.com/badge/github.com/giacomomasseron/lazynginx)](https://goreportcard.com/report/github.com/giacomomasseron/lazynginx)
 
+![lazynginx screen](docs/screens/laxynginx_screen_1.jpg?raw=true "laxynging screen")
+
 ## Features
 
 - ✅ Check Nginx status
