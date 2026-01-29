@@ -6,6 +6,8 @@ A beautiful terminal-based Nginx manager built with Go and [Bubble Tea](https://
 
 ![lazynginx screen](docs/screens/lazynginx_screen_1.png?raw=true "laxynging screen")
 
+![lazynginx screen](docs/screens/lazynginx_screen_2.png?raw=true "laxynging screen 2")
+
 ## Features
 
 - ✅ Check Nginx status
