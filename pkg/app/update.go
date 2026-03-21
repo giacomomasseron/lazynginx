@@ -2,10 +2,19 @@ package app
 
 import (
 	"lazynginx/pkg/commands"
+	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+type EditorFinishedMsg struct {
+	Err        error
+	ConfigType string
+	SiteName   string
+}
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -308,16 +317,61 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			return m, nil
+
+		case "e":
+			if m.ActivePanel == 2 && m.CurrentConfigPath != "" {
+				editor := os.Getenv("EDITOR")
+				if editor == "" {
+					switch runtime.GOOS {
+					case "windows":
+						editor = "notepad"
+					case "darwin":
+						editor = "open"
+					default:
+						editor = "vi"
+					}
+				}
+
+				var cmd *exec.Cmd
+				if runtime.GOOS == "darwin" && editor == "open" {
+					cmd = exec.Command(editor, "-t", m.CurrentConfigPath)
+				} else {
+					cmd = exec.Command(editor, m.CurrentConfigPath)
+				}
+
+				return m, tea.ExecProcess(cmd, func(err error) tea.Msg {
+					return EditorFinishedMsg{
+						Err:        err,
+						ConfigType: m.CurrentConfigType,
+						SiteName:   m.CurrentSiteName,
+					}
+				})
+			}
+			return m, nil
 		}
 
 	case commands.StatusMsg:
 		m.Status = msg.Status
 		m.DetailOutput = msg.Status + m.getAdminWarning() // Also display in details panel with warning
-		m.DetailScroll = 0                                // Reset scroll on new content
+		m.CurrentConfigPath = ""
+		m.CurrentConfigType = ""
+		m.CurrentSiteName = ""
+		m.DetailScroll = 0 // Reset scroll on new content
+		return m, nil
+
+	case commands.ConfigViewMsg:
+		m.DetailOutput = msg.Output + m.getAdminWarning()
+		m.CurrentConfigPath = msg.Path
+		m.CurrentConfigType = msg.Type
+		m.CurrentSiteName = msg.SiteName
+		m.DetailScroll = 0
 		return m, nil
 
 	case commands.OutputMsg:
 		m.DetailOutput = msg.Output + m.getAdminWarning()
+		m.CurrentConfigPath = ""
+		m.CurrentConfigType = ""
+		m.CurrentSiteName = ""
 		m.DetailScroll = 0 // Reset scroll on new content
 
 		// Check if we need to reload sites after add/delete operations
@@ -334,9 +388,25 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		return m, nil
 
+	case EditorFinishedMsg:
+		if msg.Err != nil {
+			m.DetailOutput = "Failed to open editor: " + msg.Err.Error() + m.getAdminWarning()
+			m.DetailScroll = 0
+			return m, nil
+		}
+		// Reload the config
+		if msg.ConfigType == "main" {
+			return m, func() tea.Msg { return commands.ViewNginxConfig() }
+		} else if msg.ConfigType == "site" {
+			return m, func() tea.Msg { return commands.ViewSiteConfig(msg.SiteName) }
+		}
+		return m, nil
+
 	case tea.WindowSizeMsg:
 		m.WindowWidth = msg.Width
 		m.WindowHeight = msg.Height
+		return m, nil
+
 		return m, nil
 	}
 

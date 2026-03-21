@@ -19,6 +19,13 @@ type OutputMsg struct {
 	Output string
 }
 
+type ConfigViewMsg struct {
+	Output   string
+	Path     string
+	Type     string // "main" or "site"
+	SiteName string
+}
+
 // IsAdmin checks if the program is running with administrator/root privileges
 func IsAdmin() bool {
 	if runtime.GOOS == "windows" {
@@ -368,7 +375,11 @@ func ViewNginxConfig() tea.Msg {
 		if _, err := os.Stat(path); err == nil {
 			content, err := os.ReadFile(path)
 			if err == nil {
-				return OutputMsg{Output: fmt.Sprintf("Nginx Configuration (%s):\n\n%s", path, string(content))}
+				return ConfigViewMsg{
+					Output: fmt.Sprintf("Nginx Configuration (%s):\n\n%s", path, string(content)),
+					Path:   path,
+					Type:   "main",
+				}
 			}
 		}
 	}
@@ -509,7 +520,12 @@ func ViewSiteConfig(siteName string) tea.Msg {
 		if _, err := os.Stat(path); err == nil {
 			content, err := os.ReadFile(path)
 			if err == nil {
-				return OutputMsg{Output: fmt.Sprintf("Site Configuration: %s\n\nPath: %s\n\n%s", siteName, path, string(content))}
+				return ConfigViewMsg{
+					Output:   fmt.Sprintf("Site Configuration: %s\n\nPath: %s\n\n%s", siteName, path, string(content)),
+					Path:     path,
+					Type:     "site",
+					SiteName: siteName,
+				}
 			}
 		}
 	}
