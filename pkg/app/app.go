@@ -50,6 +50,7 @@ func (m Model) GetShowModal() bool            { return m.ShowModal }
 func (m Model) GetModalType() string          { return m.ModalType }
 func (m Model) GetModalCursor() int           { return m.ModalCursor }
 func (m Model) GetTextInput() string          { return m.TextInput }
+func (m Model) GetCurrentConfigPath() string  { return m.CurrentConfigPath }
 func (m Model) GetMainScroll() int            { return m.MainScroll }
 func (m Model) GetSubScroll() int             { return m.SubScroll }
 func (m Model) GetDetailScroll() int          { return m.DetailScroll }

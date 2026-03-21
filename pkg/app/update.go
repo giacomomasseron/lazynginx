@@ -16,6 +16,39 @@ type EditorFinishedMsg struct {
 	SiteName   string
 }
 
+func (m Model) openEditorCmd(path string, configType string, siteName string) tea.Cmd {
+	editor := os.Getenv("EDITOR")
+	editorArgs := []string{}
+
+	if editor == "" {
+		switch runtime.GOOS {
+		case "windows":
+			editor = "notepad"
+		case "darwin":
+			editor = "open"
+			editorArgs = []string{"-t"}
+		default:
+			editor = "vi"
+		}
+	} else {
+		parts := strings.Fields(editor)
+		if len(parts) > 0 {
+			editor = parts[0]
+			editorArgs = parts[1:]
+		}
+	}
+
+	cmd := exec.Command(editor, append(editorArgs, path)...)
+
+	return tea.ExecProcess(cmd, func(err error) tea.Msg {
+		return EditorFinishedMsg{
+			Err:        err,
+			ConfigType: configType,
+			SiteName:   siteName,
+		}
+	})
+}
+
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.MouseMsg:
@@ -320,32 +353,35 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "e":
 			if m.ActivePanel == 2 && m.CurrentConfigPath != "" {
-				editor := os.Getenv("EDITOR")
-				if editor == "" {
-					switch runtime.GOOS {
-					case "windows":
-						editor = "notepad"
-					case "darwin":
-						editor = "open"
-					default:
-						editor = "vi"
+				return m, m.openEditorCmd(m.CurrentConfigPath, m.CurrentConfigType, m.CurrentSiteName)
+			}
+
+			if m.ActivePanel == 1 {
+				if m.MainCursor == 4 {
+					path, err := commands.FindNginxConfigPath()
+					if err != nil {
+						m.DetailOutput = "Could not locate nginx configuration file." + m.getAdminWarning()
+						m.DetailScroll = 0
+						return m, nil
 					}
+					return m, m.openEditorCmd(path, "main", "")
 				}
 
-				var cmd *exec.Cmd
-				if runtime.GOOS == "darwin" && editor == "open" {
-					cmd = exec.Command(editor, "-t", m.CurrentConfigPath)
-				} else {
-					cmd = exec.Command(editor, m.CurrentConfigPath)
-				}
-
-				return m, tea.ExecProcess(cmd, func(err error) tea.Msg {
-					return EditorFinishedMsg{
-						Err:        err,
-						ConfigType: m.CurrentConfigType,
-						SiteName:   m.CurrentSiteName,
+				if m.MainCursor == 2 && m.SubCursor > 0 {
+					subItems := m.SubMenus[m.MainCursor]
+					if m.SubCursor < len(subItems) {
+						siteName := subItems[m.SubCursor]
+						if siteName != "Loading sites..." && siteName != "No sites found" {
+							path, err := commands.FindSiteConfigPath(siteName)
+							if err != nil {
+								m.DetailOutput = "Could not locate configuration file for site: " + siteName + m.getAdminWarning()
+								m.DetailScroll = 0
+								return m, nil
+							}
+							return m, m.openEditorCmd(path, "site", siteName)
+						}
 					}
-				})
+				}
 			}
 			return m, nil
 		}
@@ -405,8 +441,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.WindowWidth = msg.Width
 		m.WindowHeight = msg.Height
-		return m, nil
-
 		return m, nil
 	}
 

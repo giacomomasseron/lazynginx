@@ -359,12 +359,7 @@ func TestNginxConfig() tea.Msg {
 	return OutputMsg{Output: fmt.Sprintf("Configuration test failed:\n%s", string(output))}
 }
 
-func ViewNginxConfig() tea.Msg {
-	var cmd *exec.Cmd
-	var output []byte
-	var err error
-
-	// Try common config locations
+func FindNginxConfigPath() (string, error) {
 	configPaths := []string{
 		"/etc/nginx/nginx.conf",
 		"C:\\nginx\\conf\\nginx.conf",
@@ -373,13 +368,46 @@ func ViewNginxConfig() tea.Msg {
 
 	for _, path := range configPaths {
 		if _, err := os.Stat(path); err == nil {
-			content, err := os.ReadFile(path)
-			if err == nil {
-				return ConfigViewMsg{
-					Output: fmt.Sprintf("Nginx Configuration (%s):\n\n%s", path, string(content)),
-					Path:   path,
-					Type:   "main",
-				}
+			return path, nil
+		}
+	}
+
+	return "", fmt.Errorf("could not locate nginx configuration file")
+}
+
+func FindSiteConfigPath(siteName string) (string, error) {
+	if siteName == "" || siteName == "Loading sites..." || siteName == "No sites found" {
+		return "", fmt.Errorf("invalid site name")
+	}
+
+	sitePaths := []string{
+		"/etc/nginx/sites-available/" + siteName,
+		"/etc/nginx/sites-enabled/" + siteName,
+		"C:\\nginx\\conf\\sites-available\\" + siteName,
+		"/usr/local/nginx/sites-available/" + siteName,
+	}
+
+	for _, path := range sitePaths {
+		if _, err := os.Stat(path); err == nil {
+			return path, nil
+		}
+	}
+
+	return "", fmt.Errorf("could not locate configuration file for site: %s", siteName)
+}
+
+func ViewNginxConfig() tea.Msg {
+	var cmd *exec.Cmd
+	var output []byte
+	var err error
+
+	if path, findErr := FindNginxConfigPath(); findErr == nil {
+		content, readErr := os.ReadFile(path)
+		if readErr == nil {
+			return ConfigViewMsg{
+				Output: fmt.Sprintf("Nginx Configuration (%s):\n\n%s", path, string(content)),
+				Path:   path,
+				Type:   "main",
 			}
 		}
 	}
@@ -508,24 +536,15 @@ func ViewSiteConfig(siteName string) tea.Msg {
 		return OutputMsg{Output: "No site selected"}
 	}
 
-	// Try to find the site config file
-	sitePaths := []string{
-		"/etc/nginx/sites-available/" + siteName,
-		"/etc/nginx/sites-enabled/" + siteName,
-		"C:\\nginx\\conf\\sites-available\\" + siteName,
-		"/usr/local/nginx/sites-available/" + siteName,
-	}
-
-	for _, path := range sitePaths {
-		if _, err := os.Stat(path); err == nil {
-			content, err := os.ReadFile(path)
-			if err == nil {
-				return ConfigViewMsg{
-					Output:   fmt.Sprintf("Site Configuration: %s\n\nPath: %s\n\n%s", siteName, path, string(content)),
-					Path:     path,
-					Type:     "site",
-					SiteName: siteName,
-				}
+	path, findErr := FindSiteConfigPath(siteName)
+	if findErr == nil {
+		content, readErr := os.ReadFile(path)
+		if readErr == nil {
+			return ConfigViewMsg{
+				Output:   fmt.Sprintf("Site Configuration: %s\n\nPath: %s\n\n%s", siteName, path, string(content)),
+				Path:     path,
+				Type:     "site",
+				SiteName: siteName,
 			}
 		}
 	}
