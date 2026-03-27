@@ -21,7 +21,8 @@ type Model struct {
 	ModalType         string // "site-type", "custom-input"
 	ModalCursor       int
 	TextInput         string
-	ProxyLocation     string // Stores nginx location from step 1 of proxy wizard
+	ProxyLocation     string            // Stores nginx location from step 1 of proxy wizard
+	ProxyConfigs      map[string]string // Maps proxy target to config file path
 	CurrentConfigPath string
 	CurrentConfigType string
 	CurrentSiteName   string
@@ -34,6 +35,10 @@ type Model struct {
 // Implement interface methods for commands.ModelInterface
 func (m *Model) SetSubMenus(index int, items []string) {
 	m.SubMenus[index] = items
+}
+
+func (m *Model) SetProxyConfigs(configs map[string]string) {
+	m.ProxyConfigs = configs
 }
 
 // Implement interface methods for gui.ModelView
@@ -115,6 +120,7 @@ func NewModel() Model {
 		ModalType:    "",
 		ModalCursor:  0,
 		TextInput:    "",
+		ProxyConfigs: make(map[string]string),
 		IsAdmin:      isAdmin,
 	}
 }
