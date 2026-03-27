@@ -21,28 +21,70 @@ A beautiful terminal-based Nginx manager built with Go and [Bubble Tea](https://
 
 ## Installation
 
-### Prerequisites
+### Binary Releases (Recommended)
 
-- Go 1.21 or later
-- Nginx installed on your system
+For Windows, macOS (10.12+) or Linux, you can download a binary release from the [releases page](https://github.com/giacomomasseron/lazynginx/releases).
+
+**Linux / macOS:**
+```bash
+# Download the latest release for your platform
+# For example, Linux x86_64:
+LAZYNGINX_VERSION=$(curl -s "https://api.github.com/repos/giacomomasseron/lazynginx/releases/latest" | grep -Po '"tag_name": *"v\K[^"]*')
+curl -Lo lazynginx.tar.gz "https://github.com/giacomomasseron/lazynginx/releases/download/v${LAZYNGINX_VERSION}/lazynginx_${LAZYNGINX_VERSION}_linux_amd64.tar.gz"
+tar xf lazynginx.tar.gz lazynginx
+sudo install lazynginx -D -t /usr/local/bin/
+```
+
+**Windows:**
+Download the `.zip` file from the [releases page](https://github.com/giacomomasseron/lazynginx/releases), extract it, and run `lazynginx.exe`.
+
+**Verify installation:**
+```bash
+lazynginx --version
+```
+
+### Homebrew (macOS and Linux)
+
+```bash
+# Coming soon
+brew install lazynginx
+```
+
+### Go
+
+```bash
+go install github.com/giacomomasseron/lazynginx@latest
+```
+
+**Note:** If you get an error claiming that lazynginx cannot be found or is not defined, you may need to add `~/go/bin` to your `$PATH` (macOS/Linux), or `%HOME%\go\bin` (Windows).
 
 ### Build from Source
 
+**Prerequisites:**
+- Go 1.21 or later
+- Nginx installed on your system
+
 ```bash
-git clone <repository-url>
+git clone https://github.com/giacomomasseron/lazynginx.git
 cd lazynginx
 go mod download
 go build -o lazynginx
 ```
 
-### Run
+You can also use `go run main.go` to compile and run in one go.
+
+### Running LazyNginx
 
 ```bash
-./lazynginx
+# Linux/macOS (may require sudo for service operations)
+sudo ./lazynginx
+
+# Or if installed globally
+sudo lazynginx
 ```
 
-Or on Windows:
-```bash
+On Windows, run as Administrator:
+```powershell
 lazynginx.exe
 ```
 
