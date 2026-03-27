@@ -2,10 +2,52 @@ package app
 
 import (
 	"lazynginx/pkg/commands"
+	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
+
+type EditorFinishedMsg struct {
+	Err        error
+	ConfigType string
+	SiteName   string
+}
+
+func (m Model) openEditorCmd(path string, configType string, siteName string) tea.Cmd {
+	editor := os.Getenv("EDITOR")
+	editorArgs := []string{}
+
+	if editor == "" {
+		switch runtime.GOOS {
+		case "windows":
+			editor = "notepad"
+		case "darwin":
+			editor = "open"
+			editorArgs = []string{"-t"}
+		default:
+			editor = "vi"
+		}
+	} else {
+		parts := strings.Fields(editor)
+		if len(parts) > 0 {
+			editor = parts[0]
+			editorArgs = parts[1:]
+		}
+	}
+
+	cmd := exec.Command(editor, append(editorArgs, path)...)
+
+	return tea.ExecProcess(cmd, func(err error) tea.Msg {
+		return EditorFinishedMsg{
+			Err:        err,
+			ConfigType: configType,
+			SiteName:   siteName,
+		}
+	})
+}
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -125,6 +167,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.ActivePanel++
 				if m.ActivePanel == 1 {
 					m.SubCursor = 0
+					// Auto-load config when Configuration menu selected and moving to submenu panel
+					if m.MainCursor == 4 {
+						return m, func() tea.Msg { return commands.ViewNginxConfig() }
+					}
 				}
 			}
 			return m, nil
@@ -308,16 +354,77 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 			return m, nil
+
+		case "e":
+			// Edit from details panel (panel 2)
+			if m.ActivePanel == 2 && m.CurrentConfigPath != "" {
+				return m, m.openEditorCmd(m.CurrentConfigPath, m.CurrentConfigType, m.CurrentSiteName)
+			}
+
+			// Edit from main menu (panel 0) - for Configuration menu
+			if m.ActivePanel == 0 && m.MainCursor == 4 {
+				path, err := commands.FindNginxConfigPath()
+				if err != nil {
+					m.DetailOutput = "Could not locate nginx configuration file." + m.getAdminWarning()
+					m.DetailScroll = 0
+					return m, nil
+				}
+				return m, m.openEditorCmd(path, "main", "")
+			}
+
+			// Edit from submenu (panel 1)
+			if m.ActivePanel == 1 {
+				if m.MainCursor == 4 {
+					path, err := commands.FindNginxConfigPath()
+					if err != nil {
+						m.DetailOutput = "Could not locate nginx configuration file." + m.getAdminWarning()
+						m.DetailScroll = 0
+						return m, nil
+					}
+					return m, m.openEditorCmd(path, "main", "")
+				}
+
+				if m.MainCursor == 2 && m.SubCursor > 0 {
+					subItems := m.SubMenus[m.MainCursor]
+					if m.SubCursor < len(subItems) {
+						siteName := subItems[m.SubCursor]
+						if siteName != "Loading sites..." && siteName != "No sites found" {
+							path, err := commands.FindSiteConfigPath(siteName)
+							if err != nil {
+								m.DetailOutput = "Could not locate configuration file for site: " + siteName + m.getAdminWarning()
+								m.DetailScroll = 0
+								return m, nil
+							}
+							return m, m.openEditorCmd(path, "site", siteName)
+						}
+					}
+				}
+			}
+			return m, nil
 		}
 
 	case commands.StatusMsg:
 		m.Status = msg.Status
 		m.DetailOutput = msg.Status + m.getAdminWarning() // Also display in details panel with warning
-		m.DetailScroll = 0                                // Reset scroll on new content
+		m.CurrentConfigPath = ""
+		m.CurrentConfigType = ""
+		m.CurrentSiteName = ""
+		m.DetailScroll = 0 // Reset scroll on new content
+		return m, nil
+
+	case commands.ConfigViewMsg:
+		m.DetailOutput = msg.Output + m.getAdminWarning()
+		m.CurrentConfigPath = msg.Path
+		m.CurrentConfigType = msg.Type
+		m.CurrentSiteName = msg.SiteName
+		m.DetailScroll = 0
 		return m, nil
 
 	case commands.OutputMsg:
 		m.DetailOutput = msg.Output + m.getAdminWarning()
+		m.CurrentConfigPath = ""
+		m.CurrentConfigType = ""
+		m.CurrentSiteName = ""
 		m.DetailScroll = 0 // Reset scroll on new content
 
 		// Check if we need to reload sites after add/delete operations
@@ -332,6 +439,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, commands.LoadReverseProxies(&m)
 		}
 
+		return m, nil
+
+	case EditorFinishedMsg:
+		if msg.Err != nil {
+			m.DetailOutput = "Failed to open editor: " + msg.Err.Error() + m.getAdminWarning()
+			m.DetailScroll = 0
+			return m, nil
+		}
+		// Reload the config
+		if msg.ConfigType == "main" {
+			return m, func() tea.Msg { return commands.ViewNginxConfig() }
+		} else if msg.ConfigType == "site" {
+			return m, func() tea.Msg { return commands.ViewSiteConfig(msg.SiteName) }
+		}
 		return m, nil
 
 	case tea.WindowSizeMsg:

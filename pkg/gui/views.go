@@ -23,6 +23,7 @@ type ModelView interface {
 	GetModalType() string
 	GetModalCursor() int
 	GetTextInput() string
+	GetCurrentConfigPath() string
 	GetMainScroll() int
 	GetSubScroll() int
 	GetDetailScroll() int
@@ -474,16 +475,27 @@ func ViewFooter(m ModelView, windowWidth int) string {
 
 	switch activePanel {
 	case 0: // Main menu
-		keybindings = "[↑↓/jk] scroll [→/l/tab] next panel [enter] select [mouse] scroll/click [q] quit"
+		// Show [e] edit for Configuration menu (has no submenu, editable from main menu)
+		if mainCursor == 4 {
+			keybindings = "[↑↓/jk] scroll [→/l/tab] next panel [enter] select [e] edit [mouse] scroll/click [q] quit"
+		} else {
+			keybindings = "[↑↓/jk] scroll [→/l/tab] next panel [enter] select [mouse] scroll/click [q] quit"
+		}
 	case 1: // Sub menu
 		// Check if we're in Sites menu with a site selected (not "Add site")
 		if mainCursor == 2 && subCursor > 0 {
-			keybindings = "[↑↓/jk] scroll [←/h] prev panel [→/l/tab] next panel [enter] execute [d] delete [mouse] scroll/click [q] quit"
+			keybindings = "[↑↓/jk] scroll [←/h] prev panel [→/l/tab] next panel [enter] execute [e] edit [d] delete [mouse] scroll/click [q] quit"
+		} else if mainCursor == 4 {
+			keybindings = "[↑↓/jk] scroll [←/h] prev panel [→/l/tab] next panel [enter] execute [e] edit [mouse] scroll/click [q] quit"
 		} else {
 			keybindings = "[↑↓/jk] scroll [←/h] prev panel [→/l/tab] next panel [enter] execute [mouse] scroll/click [q] quit"
 		}
 	case 2: // Details
-		keybindings = "[↑↓/jk] scroll [←/h] prev panel [mouse] scroll/click [q] quit"
+		if m.GetCurrentConfigPath() != "" {
+			keybindings = "[↑↓/jk] scroll [←/h] prev panel [e] edit [mouse] scroll/click [q] quit"
+		} else {
+			keybindings = "[↑↓/jk] scroll [←/h] prev panel [mouse] scroll/click [q] quit"
+		}
 	}
 
 	footerStyle := lipgloss.NewStyle().
