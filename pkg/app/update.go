@@ -167,6 +167,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.ActivePanel++
 				if m.ActivePanel == 1 {
 					m.SubCursor = 0
+					// Auto-load config when Configuration menu selected and moving to submenu panel
+					if m.MainCursor == 4 {
+						return m, func() tea.Msg { return commands.ViewNginxConfig() }
+					}
 				}
 			}
 			return m, nil
@@ -352,10 +356,23 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 
 		case "e":
+			// Edit from details panel (panel 2)
 			if m.ActivePanel == 2 && m.CurrentConfigPath != "" {
 				return m, m.openEditorCmd(m.CurrentConfigPath, m.CurrentConfigType, m.CurrentSiteName)
 			}
 
+			// Edit from main menu (panel 0) - for Configuration menu
+			if m.ActivePanel == 0 && m.MainCursor == 4 {
+				path, err := commands.FindNginxConfigPath()
+				if err != nil {
+					m.DetailOutput = "Could not locate nginx configuration file." + m.getAdminWarning()
+					m.DetailScroll = 0
+					return m, nil
+				}
+				return m, m.openEditorCmd(path, "main", "")
+			}
+
+			// Edit from submenu (panel 1)
 			if m.ActivePanel == 1 {
 				if m.MainCursor == 4 {
 					path, err := commands.FindNginxConfigPath()
