@@ -27,6 +27,8 @@ It you click on "Custom", another modal opens with text input.
 ### Reverse Proxies
 
 This menu voice reads the nginx config file and lists all reverse proxies defined in it. And it shows them in the second box on the right.
+- **Add Reverse Proxy** - Opens a flow to choose proxy type (Simple Proxy or Load Balanced) and create it.
+- **Add Load Balancer** - Opens the Load Balanced creation flow directly.
 
 ### Configuration
 

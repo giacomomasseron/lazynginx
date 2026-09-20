@@ -71,13 +71,13 @@ func (m Model) getAdminWarning() string {
 
 func NewModel() Model {
 	subMenus := make(map[int][]string)
-	subMenus[0] = []string{"Check Status", "Test Configuration"}               // Status & Monitoring
-	subMenus[1] = []string{"Start", "Stop", "Restart", "Reload Configuration"} // Service Control
-	subMenus[2] = []string{"Add site", "Loading sites..."}                     // Sites - populated dynamically
-	subMenus[3] = []string{"Add Reverse Proxy", "Loading reverse proxies..."}  // Reverse Proxies - populated dynamically
-	subMenus[4] = []string{}                                                   // Configuration - auto-loads config file
-	subMenus[5] = []string{"View Error Log", "View Access Log"}                // Logs
-	subMenus[6] = []string{"Exit Application"}                                 // Quit
+	subMenus[0] = []string{"Check Status", "Test Configuration"}                                   // Status & Monitoring
+	subMenus[1] = []string{"Start", "Stop", "Restart", "Reload Configuration"}                     // Service Control
+	subMenus[2] = []string{"Add site", "Loading sites..."}                                         // Sites - populated dynamically
+	subMenus[3] = []string{"Add Reverse Proxy", "Add Load Balancer", "Loading reverse proxies..."} // Reverse Proxies - populated dynamically
+	subMenus[4] = []string{}                                                                       // Configuration - auto-loads config file
+	subMenus[5] = []string{"View Error Log", "View Access Log"}                                    // Logs
+	subMenus[6] = []string{"Exit Application"}                                                     // Quit
 
 	// Check for admin permissions
 	isAdmin := commands.IsAdmin()

@@ -620,13 +620,13 @@ func LoadReverseProxies(m ModelInterface) tea.Cmd {
 		}
 
 		if len(proxies) > 0 {
-			// Prepend "Add Reverse Proxy" to the proxies list
-			m.SetSubMenus(3, append([]string{"Add Reverse Proxy"}, proxies...))
+			// Prepend action items to the proxies list
+			m.SetSubMenus(3, append([]string{"Add Reverse Proxy", "Add Load Balancer"}, proxies...))
 			return StatusMsg{Status: fmt.Sprintf("Found %d reverse proxies", len(proxies))}
 		}
 
-		// If no proxies found, keep "Add Reverse Proxy" option
-		m.SetSubMenus(3, []string{"Add Reverse Proxy", "No reverse proxies found"})
+		// If no proxies found, keep action items
+		m.SetSubMenus(3, []string{"Add Reverse Proxy", "Add Load Balancer", "No reverse proxies found"})
 		return StatusMsg{Status: "No reverse proxies configured"}
 	}
 }
