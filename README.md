@@ -2,7 +2,7 @@
 
 A beautiful terminal-based Nginx manager built with Go and [Bubble Tea](https://github.com/charmbracelet/bubbletea).
 
-[![GitHub Releases](https://img.shields.io/github/downloads/giacomomasseron/lazynginx/total)](https://github.com/giacomomasseron/lazynginx/releases) [![Go Report Card](https://goreportcard.com/badge/github.com/giacomomasseron/lazynginx)](https://goreportcard.com/report/github.com/giacomomasseron/lazynginx)
+[![GitHub Releases](https://img.shields.io/github/downloads/giacomomasseron/lazynginx/total)](https://github.com/giacomomasseron/lazynginx/releases) [![Lint](https://github.com/giacomomasseron/lazynginx/actions/workflows/lint.yml/badge.svg)](https://github.com/giacomomasseron/lazynginx/actions/workflows/lint.yml)
 
 ![lazynginx screen](docs/screens/lazynginx_screen_1.png?raw=true "laxynging screen")
 
@@ -152,4 +152,26 @@ MIT
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+### Linting
+
+This project uses [golangci-lint](https://golangci-lint.run/). The rules live in
+[`.golangci.yml`](.golangci.yml) and run on every push and pull request.
+
+Install it ([other methods](https://golangci-lint.run/docs/welcome/install/)):
+
+```bash
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2
+```
+
+Then run it from the repository root:
+
+```bash
+golangci-lint run ./...
+
+# Apply the fixes it can make automatically (including formatting)
+golangci-lint run --fix ./...
+```
+
+Please make sure it reports no issues before opening a Pull Request.
 

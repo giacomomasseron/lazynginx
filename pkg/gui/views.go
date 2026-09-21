@@ -79,15 +79,8 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		actualBoxWidth = boxWidth - 1
 	}
 
-	// Content width = box width - border (2) - padding (2)
-	contentWidth := actualBoxWidth - 4
-	if contentWidth < 10 {
-		contentWidth = 10
-	}
-
 	// Render visible items (no scrollbar inside content)
-	for idx, i := range make([]int, endLine-startLine) {
-		i = startLine + idx
+	for i := startLine; i < endLine; i++ {
 		choice := mainMenu[i]
 		cursor := "  "
 		var line string
@@ -105,7 +98,7 @@ func ViewMainMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	}
 
 	// Fill remaining lines with empty space to ensure consistent height
-	for len := endLine - startLine; len < availableLines; len++ {
+	for n := endLine - startLine; n < availableLines; n++ {
 		s.WriteString("\n")
 	}
 
@@ -224,15 +217,8 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 		actualBoxWidth = boxWidth - 1
 	}
 
-	// Content width = box width - border (2) - padding (2)
-	contentWidth := actualBoxWidth - 4
-	if contentWidth < 10 {
-		contentWidth = 10
-	}
-
 	// Render visible items (no scrollbar inside content)
-	for idx, i := range make([]int, endLine-startLine) {
-		i = startLine + idx
+	for i := startLine; i < endLine; i++ {
 		choice := subItems[i]
 		cursor := "  "
 		var line string
@@ -250,7 +236,7 @@ func ViewSubMenuWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	}
 
 	// Fill remaining lines with empty space to ensure consistent height
-	for len := endLine - startLine; len < availableLines; len++ {
+	for n := endLine - startLine; n < availableLines; n++ {
 		s.WriteString("\n")
 	}
 
@@ -398,7 +384,7 @@ func ViewDetailsWithDim(m ModelView, dim boxlayout.Dimensions) string {
 	}
 
 	// Fill remaining lines with empty space to ensure consistent height
-	for len := endLine - startLine; len < availableLines; len++ {
+	for n := endLine - startLine; n < availableLines; n++ {
 		s.WriteString("\n")
 	}
 

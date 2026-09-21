@@ -1,0 +1,35 @@
+version: "2"
+
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - misspell
+    - revive
+    - unconvert
+  settings:
+    revive:
+      rules:
+        - name: indent-error-flow
+        - name: redefines-builtin-id
+        - name: errorf
+        - name: error-return
+        - name: error-strings
+        - name: increment-decrement
+        - name: range
+        - name: superfluous-else
+        - name: unreachable-code
+        - name: var-declaration
+  exclusions:
+    presets:
+      - common-false-positives
+      - std-error-handling
+    rules:
+      # Style suggestion, not a defect: the if/else chains here stay readable.
+      - linters: [staticcheck]
+        text: "QF1003:"
+
+formatters:
+  enable:
+    - gofmt
+    - goimports

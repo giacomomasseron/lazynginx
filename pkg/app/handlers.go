@@ -74,12 +74,12 @@ func (m Model) handleModalInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				m.ShowModal = false
 				m.ModalType = ""
 				return m, commands.StopNginx
-			} else {
-				// No selected - cancel
-				m.ShowModal = false
-				m.ModalType = ""
-				return m, nil
 			}
+
+			// No selected - cancel
+			m.ShowModal = false
+			m.ModalType = ""
+			return m, nil
 		} else if m.ModalType == "confirm-delete-site" {
 			if m.ModalCursor == 0 {
 				// Yes selected - execute delete
@@ -90,12 +90,12 @@ func (m Model) handleModalInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				return m, func() tea.Msg {
 					return commands.DeleteSite(siteName)
 				}
-			} else {
-				// No selected - cancel
-				m.ShowModal = false
-				m.ModalType = ""
-				return m, nil
 			}
+
+			// No selected - cancel
+			m.ShowModal = false
+			m.ModalType = ""
+			return m, nil
 		} else if m.ModalType == "site-type" {
 			if m.ModalCursor == 0 {
 				// Laravel selected - show text input modal for Laravel site name
@@ -112,12 +112,12 @@ func (m Model) handleModalInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				m.ModalType = "vanilla-php-input"
 				m.TextInput = ""
 				return m, nil
-			} else {
-				// Custom selected - show text input modal
-				m.ModalType = "custom-input"
-				m.TextInput = ""
-				return m, nil
 			}
+
+			// Custom selected - show text input modal
+			m.ModalType = "custom-input"
+			m.TextInput = ""
+			return m, nil
 		} else if m.ModalType == "laravel-input" {
 			// Submit Laravel site name
 			m.ShowModal = false
@@ -148,12 +148,12 @@ func (m Model) handleModalInput(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 				m.ModalType = "proxy-location-input"
 				m.TextInput = ""
 				return m, nil
-			} else {
-				// Load Balanced selected - show step 1: location input
-				m.ModalType = "proxy-location-input-lb"
-				m.TextInput = ""
-				return m, nil
 			}
+
+			// Load Balanced selected - show step 1: location input
+			m.ModalType = "proxy-location-input-lb"
+			m.TextInput = ""
+			return m, nil
 		} else if m.ModalType == "proxy-location-input" {
 			// Step 1 complete - save location and move to step 2
 			m.ProxyLocation = m.TextInput

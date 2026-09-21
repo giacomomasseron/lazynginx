@@ -54,13 +54,17 @@ go get -u ./...
 
 ### Linting
 ```bash
-# No golangci-lint configuration exists
-# Use standard Go tools:
+# golangci-lint is configured in .golangci.yml and runs in CI
+# (.github/workflows/lint.yml) on every push and pull request.
+go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2
+golangci-lint run ./...
+
+# Apply auto-fixes, including formatting
+golangci-lint run --fix ./...
+
+# Standard Go tools still work:
 go fmt ./...
 go vet ./...
-
-# Install and run golangci-lint manually if needed:
-# golangci-lint run
 ```
 
 ## Architecture and Code Organization

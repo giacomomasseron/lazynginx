@@ -33,10 +33,10 @@ func IsAdmin() bool {
 		cmd := exec.Command("net", "session")
 		err := cmd.Run()
 		return err == nil
-	} else {
-		// On Unix/Linux/macOS, check if running as root (UID 0)
-		return os.Geteuid() == 0
 	}
+
+	// On Unix/Linux/macOS, check if running as root (UID 0)
+	return os.Geteuid() == 0
 }
 
 // Commands
@@ -168,7 +168,7 @@ func StartNginx() tea.Msg {
 	nginxErr := string(output)
 
 	// All methods failed, show detailed error
-	errorMsg := fmt.Sprintf("Failed to start nginx. Tried the following methods:\n\n")
+	errorMsg := "Failed to start nginx. Tried the following methods:\n\n"
 	errorMsg += fmt.Sprintf("1. Windows (net start): %s\n", windowsErr)
 	errorMsg += fmt.Sprintf("2. Systemd (sudo): %s\n", systemdSudoErr)
 	errorMsg += fmt.Sprintf("3. Direct nginx (sudo): %s\n", nginxSudoErr)
@@ -234,7 +234,7 @@ func StopNginx() tea.Msg {
 	pkillErr := string(output)
 
 	// All methods failed, show detailed error
-	errorMsg := fmt.Sprintf("Failed to stop nginx. Tried the following methods:\n\n")
+	errorMsg := "Failed to stop nginx. Tried the following methods:\n\n"
 	errorMsg += fmt.Sprintf("1. Windows (net stop): %s\n", windowsErr)
 	errorMsg += fmt.Sprintf("2. Systemd (sudo): %s\n", systemdErr)
 	errorMsg += fmt.Sprintf("3. Direct nginx (sudo): %s\n", sudoNginxErr)
@@ -255,7 +255,8 @@ func RestartNginx() tea.Msg {
 
 	// Windows
 	cmd = exec.Command("net", "stop", "nginx")
-	cmd.Run()
+	// Ignore the error: nginx may not be running yet.
+	_ = cmd.Run()
 	cmd = exec.Command("net", "start", "nginx")
 	output, err = cmd.CombinedOutput()
 	if err == nil {
@@ -295,7 +296,7 @@ func RestartNginx() tea.Msg {
 	nginxErr := string(output)
 
 	// All methods failed, show detailed error
-	errorMsg := fmt.Sprintf("Failed to restart nginx. Tried the following methods:\n\n")
+	errorMsg := "Failed to restart nginx. Tried the following methods:\n\n"
 	errorMsg += fmt.Sprintf("1. Windows (net restart): %s\n", windowsErr)
 	errorMsg += fmt.Sprintf("2. Systemd (sudo): %s\n", systemdSudoErr)
 	errorMsg += fmt.Sprintf("3. Direct nginx reload (sudo): %s\n", nginxSudoErr)
@@ -750,7 +751,8 @@ func AddSite(siteType string, siteName string) tea.Msg {
 			if err == nil {
 				// Try to create symlink to sites-enabled
 				enabledPath := strings.Replace(path, "sites-available", "sites-enabled", 1)
-				os.Symlink(path, enabledPath)
+				// Best effort: the link may already exist.
+				_ = os.Symlink(path, enabledPath)
 
 				return OutputMsg{Output: fmt.Sprintf("Site '%s' created successfully!\n\nConfiguration file: %s\n\nType: %s\n\nNext steps:\n1. Create directory: /var/www/%s\n2. Reload nginx: sudo systemctl reload nginx\n3. Add to /etc/hosts: 127.0.0.1 %s.local", actualSiteName, path, siteType, actualSiteName, actualSiteName)}
 			}
@@ -877,7 +879,8 @@ server {
 				// Try to create symlink to sites-enabled (if applicable)
 				if strings.Contains(path, "sites-available") {
 					enabledPath := strings.Replace(path, "sites-available", "sites-enabled", 1)
-					os.Symlink(path, enabledPath)
+					// Best effort: the link may already exist.
+					_ = os.Symlink(path, enabledPath)
 				}
 
 				return OutputMsg{Output: fmt.Sprintf("Reverse proxy '%s' created successfully!\n\nConfiguration file: %s\n\nType: %s\n\nLocation: %s\nBackend(s): %s\n\nNext steps:\n1. Test configuration: sudo nginx -t\n2. Reload nginx: sudo systemctl reload nginx\n\nNote: This creates a catch-all server block (server_name _).\nFor production, edit the config to set a specific server_name.", configName, path, proxyType, location, backends)}
