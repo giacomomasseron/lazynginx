@@ -333,6 +333,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.ModalCursor = 0
 					return m, nil
 				}
+				// Check if it's "Add Load Balancer" in Reverse Proxies menu
+				if m.MainCursor == 3 && m.SubCursor == 1 {
+					m.ShowModal = true
+					m.ModalType = "proxy-location-input-lb"
+					m.TextInput = ""
+					return m, nil
+				}
 				// Otherwise execute the selection
 				return m, m.handleSelection()
 			}
