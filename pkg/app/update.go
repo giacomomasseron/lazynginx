@@ -52,8 +52,7 @@ func (m Model) openEditorCmd(path string, configType string, siteName string) te
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.MouseMsg:
-		switch msg.Type {
-		case tea.MouseLeft:
+		if msg.Action == tea.MouseActionPress && msg.Button == tea.MouseButtonLeft {
 			// Calculate which panel was clicked based on x position (horizontal layout)
 			footerHeight := 1
 			contentHeight := m.WindowHeight - footerHeight
