@@ -2,7 +2,7 @@
 
 A beautiful terminal-based Nginx manager built with Go and [Bubble Tea](https://github.com/charmbracelet/bubbletea).
 
-[![GitHub Releases](https://img.shields.io/github/downloads/giacomomasseron/lazynginx/total)](https://github.com/giacomomasseron/lazynginx/releases) [![Lint](https://github.com/giacomomasseron/lazynginx/actions/workflows/lint.yml/badge.svg)](https://github.com/giacomomasseron/lazynginx/actions/workflows/lint.yml)
+[![Release](https://img.shields.io/github/v/release/giacomomasseron/lazynginx)](https://github.com/giacomomasseron/lazynginx/releases/latest) [![GitHub Releases](https://img.shields.io/github/downloads/giacomomasseron/lazynginx/total)](https://github.com/giacomomasseron/lazynginx/releases) [![Lint](https://github.com/giacomomasseron/lazynginx/actions/workflows/lint.yml/badge.svg)](https://github.com/giacomomasseron/lazynginx/actions/workflows/lint.yml)
 
 ![lazynginx screen](docs/screens/lazynginx_screen_1.png?raw=true "laxynging screen")
 
@@ -14,7 +14,9 @@ A beautiful terminal-based Nginx manager built with Go and [Bubble Tea](https://
 - 🚀 Start/Stop/Restart Nginx
 - 🔄 Reload configuration
 - ✅ Test configuration
-- 📄 View configuration file
+- 🌐 Manage sites: list, add, view and delete
+- 🔀 Manage reverse proxies and load balancers
+- 📄 View and edit configuration files in your `$EDITOR`
 - 📊 View error logs
 - 📈 View access logs
 - 🎨 Beautiful terminal UI
@@ -37,11 +39,6 @@ sudo install lazynginx -D -t /usr/local/bin/
 
 **Windows:**
 Download the `.zip` file from the [releases page](https://github.com/giacomomasseron/lazynginx/releases), extract it, and run `lazynginx.exe`.
-
-**Verify installation:**
-```bash
-lazynginx --version
-```
 
 ### Homebrew (macOS and Linux)
 
@@ -93,21 +90,24 @@ lazynginx.exe
 ### Navigation
 
 - `↑` / `↓` or `k` / `j`: Navigate menu
+- `→` / `l` / `Tab`: Move to the next panel
+- `←` / `h`: Move back to the previous panel
 - `Enter`: Select option
+- `e`: Edit the selected configuration file
+- `d`: Delete the selected site
 - `q` or `Ctrl+C`: Quit application
 
 ### Available Commands
 
-1. **Check Status** - Check if Nginx is running
-2. **Start Nginx** - Start the Nginx service
-3. **Stop Nginx** - Stop the Nginx service
-4. **Restart Nginx** - Restart the Nginx service
-5. **Reload Configuration** - Reload Nginx configuration without downtime
-6. **Test Configuration** - Test Nginx configuration for syntax errors
-7. **View Configuration** - Display Nginx configuration file
-8. **View Error Logs** - Show last 50 lines of error log
-9. **View Access Logs** - Show last 50 lines of access log
-10. **Quit** - Exit the application
+The menu is grouped into categories:
+
+1. **Status & Monitoring** - Check Status, Test Configuration
+2. **Service Control** - Start, Stop, Restart, Reload Configuration
+3. **Sites** - Add a site, then view, edit or delete the existing ones
+4. **Reverse Proxies** - Add Reverse Proxy, Add Load Balancer, and view the existing ones
+5. **Configuration** - Display and edit the Nginx configuration file
+6. **Logs** - View Error Log, View Access Log (last 50 lines)
+7. **Quit** - Exit the application
 
 ## Platform Support
 
