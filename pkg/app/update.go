@@ -123,6 +123,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						if m.MainCursor == 0 && m.SubCursor == 0 {
 							return m, commands.CheckNginxStatus
 						}
+						// Auto-load test config when Test Configuration selected
+						if m.MainCursor == 0 && m.SubCursor == 1 {
+							return m, commands.TestNginxConfig
+						}
 						// Auto-load logs when in Logs menu
 						if m.MainCursor == 5 {
 							if m.SubCursor == 0 {
@@ -135,6 +139,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						if m.MainCursor == 2 && m.SubCursor > 0 {
 							siteName := m.SubMenus[m.MainCursor][m.SubCursor]
 							return m, func() tea.Msg { return commands.ViewSiteConfig(siteName) }
+						}
+						// Auto-load proxy config when in Reverse Proxies menu (skip "Add Reverse Proxy")
+						if m.MainCursor == 3 && m.SubCursor > 0 {
+							proxyTarget := m.SubMenus[m.MainCursor][m.SubCursor]
+							configPath := m.ProxyConfigs[proxyTarget]
+							return m, func() tea.Msg { return commands.ViewProxyConfig(proxyTarget, configPath) }
 						}
 					}
 				}
@@ -228,6 +238,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						siteName := m.SubMenus[m.MainCursor][m.SubCursor]
 						return m, func() tea.Msg { return commands.ViewSiteConfig(siteName) }
 					}
+					// Auto-load proxy config when in Reverse Proxies menu (skip "Add Reverse Proxy")
+					if m.MainCursor == 3 && m.SubCursor > 0 {
+						proxyTarget := m.SubMenus[m.MainCursor][m.SubCursor]
+						configPath := m.ProxyConfigs[proxyTarget]
+						return m, func() tea.Msg { return commands.ViewProxyConfig(proxyTarget, configPath) }
+					}
 				}
 			} else if m.ActivePanel == 2 {
 				// Scroll up in details panel
@@ -301,6 +317,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.MainCursor == 2 && m.SubCursor > 0 {
 						siteName := m.SubMenus[m.MainCursor][m.SubCursor]
 						return m, func() tea.Msg { return commands.ViewSiteConfig(siteName) }
+					}
+					// Auto-load proxy config when in Reverse Proxies menu (skip "Add Reverse Proxy")
+					if m.MainCursor == 3 && m.SubCursor > 0 {
+						proxyTarget := m.SubMenus[m.MainCursor][m.SubCursor]
+						configPath := m.ProxyConfigs[proxyTarget]
+						return m, func() tea.Msg { return commands.ViewProxyConfig(proxyTarget, configPath) }
 					}
 				}
 			} else if m.ActivePanel == 2 {

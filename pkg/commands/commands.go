@@ -495,6 +495,7 @@ func ViewAccessLogs() tea.Msg {
 // ModelInterface defines the methods needed from the model
 type ModelInterface interface {
 	SetSubMenus(index int, items []string)
+	SetProxyConfigs(configs map[string]string)
 }
 
 func LoadSites(m ModelInterface) tea.Cmd {
@@ -553,9 +554,28 @@ func ViewSiteConfig(siteName string) tea.Msg {
 	return OutputMsg{Output: fmt.Sprintf("Could not locate configuration file for site: %s\n\nSearched in:\n- /etc/nginx/sites-available/\n- /etc/nginx/sites-enabled/\n- C:\\nginx\\conf\\sites-available\\", siteName)}
 }
 
+func ViewProxyConfig(proxyTarget string, configPath string) tea.Msg {
+	if proxyTarget == "No reverse proxies found" || proxyTarget == "Loading reverse proxies..." {
+		return OutputMsg{Output: "No proxy selected"}
+	}
+
+	// Read the config file
+	if configPath != "" {
+		if _, err := os.Stat(configPath); err == nil {
+			content, err := os.ReadFile(configPath)
+			if err == nil {
+				return OutputMsg{Output: fmt.Sprintf("Reverse Proxy Configuration\n\nProxy Target: %s\n\nPath: %s\n\n%s", proxyTarget, configPath, string(content))}
+			}
+		}
+	}
+
+	return OutputMsg{Output: fmt.Sprintf("Could not locate configuration file for proxy: %s", proxyTarget)}
+}
+
 func LoadReverseProxies(m ModelInterface) tea.Cmd {
 	return func() tea.Msg {
 		var proxies []string
+		proxyToConfigMap := make(map[string]string) // Maps proxy target to config file path
 
 		// Try to find nginx config and parse for proxy_pass directives
 		configPaths := []string{
@@ -612,6 +632,7 @@ func LoadReverseProxies(m ModelInterface) tea.Cmd {
 								if !proxyMap[target] {
 									proxyMap[target] = true
 									proxies = append(proxies, target)
+									proxyToConfigMap[target] = configPath // Store the mapping
 								}
 							}
 						}
@@ -619,6 +640,9 @@ func LoadReverseProxies(m ModelInterface) tea.Cmd {
 				}
 			}
 		}
+
+		// Store the proxy-to-config mapping in the model
+		m.SetProxyConfigs(proxyToConfigMap)
 
 		if len(proxies) > 0 {
 			// Prepend action items to the proxies list

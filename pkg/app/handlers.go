@@ -292,7 +292,15 @@ func (m Model) handleSelection() tea.Cmd {
 			}
 		}
 	case 3: // Reverse Proxies
-		// TODO: Implement reverse proxy viewing
+		subItems := m.SubMenus[m.MainCursor]
+		// Skip index 0 (Add Reverse Proxy) - that's handled in the enter key
+		if m.SubCursor > 0 && m.SubCursor < len(subItems) {
+			proxyTarget := subItems[m.SubCursor]
+			configPath := m.ProxyConfigs[proxyTarget]
+			return func() tea.Msg {
+				return commands.ViewProxyConfig(proxyTarget, configPath)
+			}
+		}
 		return nil
 	case 4: // Configuration
 		// Auto-loaded, but can also be triggered manually
